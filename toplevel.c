@@ -1,4 +1,5 @@
 #include "toplevel.h"
+#include <stdlib.h>
 
 static void foreign_toplevel_handle_closed (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {}
@@ -13,21 +14,24 @@ static void foreign_toplevel_handle_title (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *title) {
   struct toplevel *tl = data;
-  tl->title           = strdup (title);
+  free (tl->title);
+  tl->title = strdup (title);
 }
 
 static void foreign_toplevel_handle_app_id (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *app_id) {
   struct toplevel *tl = data;
-  tl->app_id          = strdup (app_id);
+  free (tl->app_id);
+  tl->app_id = strdup (app_id);
 }
 
 static void foreign_toplevel_handle_identifier (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *identifier) {
   struct toplevel *tl = data;
-  tl->identifier      = strdup (identifier);
+  // the compositor must only send this event when the handle is created
+  tl->identifier = strdup (identifier);
 }
 
 static const struct ext_foreign_toplevel_handle_v1_listener
@@ -71,7 +75,7 @@ bool toplevel_init (struct state *s) {
   return true;
 }
 
-void toplevel_destory (struct state *s) {
+void toplevel_destroy (struct state *s) {
   struct toplevel *tl, *tl_tmp;
 
   wl_list_for_each_safe (tl, tl_tmp, &s->toplevels, link) {
