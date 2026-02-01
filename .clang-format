@@ -2,22 +2,22 @@ AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
   Enabled: true
-  AcrossComments: true
+  AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignConsecutiveBitFields:
   Enabled: true
-  AcrossComments: true
+  AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignConsecutiveDeclarations:
   Enabled: true
-  AcrossComments: true
+  AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignConsecutiveMacros:
   Enabled: true
-  AcrossComments: true
+  AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignEscapedNewlines: Right
