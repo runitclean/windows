@@ -72,9 +72,9 @@ bool toplevel_init (struct state *s) {
 }
 
 void toplevel_destory (struct state *s) {
-  struct toplevel *tl;
+  struct toplevel *tl, *tl_tmp;
 
-  wl_list_for_each (tl, &s->toplevels, link) {
+  wl_list_for_each_safe (tl, tl_tmp, &s->toplevels, link) {
     wl_list_remove (&tl->link);
     free (tl->title);
     free (tl->app_id);
