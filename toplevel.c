@@ -1,5 +1,4 @@
 #include "toplevel.h"
-#include <stdlib.h>
 
 static void foreign_toplevel_handle_closed (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {}
