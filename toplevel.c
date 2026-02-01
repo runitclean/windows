@@ -1,5 +1,4 @@
 #include "toplevel.h"
-#include "ext-foreign-toplevel-list-v1-protocol.h"
 
 static void foreign_toplevel_handle_closed (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {}
@@ -72,7 +71,7 @@ bool toplevel_init (struct state *s) {
   return true;
 }
 
-void level_destory (struct state *s) {
+void toplevel_destory (struct state *s) {
   struct toplevel *tl;
 
   wl_list_for_each (tl, &s->toplevels, link) {
