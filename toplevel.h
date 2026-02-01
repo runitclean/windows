@@ -14,3 +14,7 @@ struct toplevel {
   char *title;
   char *app_id;
 };
+
+bool toplevel_init (struct state *s);
+
+void toplevel_destory (struct state *s);
