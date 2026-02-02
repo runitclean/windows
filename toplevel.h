@@ -16,5 +16,4 @@ struct toplevel {
 };
 
 bool toplevel_init (struct state *s);
-
 void toplevel_destroy (struct state *s);
