@@ -3,8 +3,14 @@ TARGET := windows
 
 WAYLAND_SCANNER   := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
 WAYLAND_PROTOCOLS := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
-WAYLAND_HEADER    := ext-foreign-toplevel-list-v1-protocol.h
-WAYLAND_INTERFACE := ext-foreign-toplevel-list-v1-protocol.c
+WAYLAND_HEADER    := \
+	ext-foreign-toplevel-list-v1-protocol.h \
+	ext-image-capture-source-v1-protocol.h \
+	ext-image-copy-capture-v1-protocol.h
+WAYLAND_INTERFACE := \
+	ext-foreign-toplevel-list-v1-protocol.c \
+	ext-image-capture-source-v1-protocol.c \
+	ext-image-copy-capture-v1-protocol.c
 
 SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
@@ -19,6 +25,22 @@ ext-foreign-toplevel-list-v1-protocol.h: \
 
 ext-foreign-toplevel-list-v1-protocol.c: \
 	$(WAYLAND_PROTOCOLS)/staging/ext-foreign-toplevel-list/ext-foreign-toplevel-list-v1.xml
+	$(WAYLAND_SCANNER) private-code $< $@
+
+ext-image-capture-source-v1-protocol.h: \
+	$(WAYLAND_PROTOCOLS)/staging/ext-image-capture-source/ext-image-capture-source-v1.xml
+	$(WAYLAND_SCANNER) client-header $< $@
+
+ext-image-capture-source-v1-protocol.c: \
+	$(WAYLAND_PROTOCOLS)/staging/ext-image-capture-source/ext-image-capture-source-v1.xml
+	$(WAYLAND_SCANNER) private-code $< $@
+
+ext-image-copy-capture-v1-protocol.h: \
+	$(WAYLAND_PROTOCOLS)/staging/ext-image-copy-capture/ext-image-copy-capture-v1.xml
+	$(WAYLAND_SCANNER) client-header $< $@
+
+ext-image-copy-capture-v1-protocol.c: \
+	$(WAYLAND_PROTOCOLS)/staging/ext-image-copy-capture/ext-image-copy-capture-v1.xml
 	$(WAYLAND_SCANNER) private-code $< $@
 
 $(TARGET): $(OBJS)
