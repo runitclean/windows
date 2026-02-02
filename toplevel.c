@@ -79,10 +79,13 @@ void toplevel_destroy (struct state *s) {
 
   wl_list_for_each_safe (tl, tl_tmp, &s->toplevels, link) {
     wl_list_remove (&tl->link);
+
     free (tl->title);
     free (tl->app_id);
     free (tl->identifier);
+
     ext_foreign_toplevel_handle_v1_destroy (tl->handle);
+
     free (tl);
   }
 
