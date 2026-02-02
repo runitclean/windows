@@ -28,7 +28,7 @@ image_copy_from_toplevel (struct state                          *s,
           s->toplevel_source_manager, handle);
 
   f->session = ext_image_copy_capture_manager_v1_create_session (
-      s->image_copy_manager, source, NULL);
+      s->image_copy_manager, source, false);
   f->frame = ext_image_copy_capture_session_v1_create_frame (f->session);
 
   ext_image_copy_capture_frame_v1_add_listener (f->frame, &frame_listener, f);
