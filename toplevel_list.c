@@ -1,36 +1,36 @@
-#include "toplevel.h"
+#include "toplevel_list.h"
 
 static void foreign_toplevel_handle_closed (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {}
 
 static void foreign_toplevel_handle_done (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {
-  struct toplevel *tl = data;
-  tl->done            = true;
+  struct toplevel *t = data;
+  t->done            = true;
 }
 
 static void foreign_toplevel_handle_title (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *title) {
-  struct toplevel *tl = data;
-  free (tl->title);
-  tl->title = strdup (title);
+  struct toplevel *t = data;
+  free (t->title);
+  t->title = strdup (title);
 }
 
 static void foreign_toplevel_handle_app_id (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *app_id) {
-  struct toplevel *tl = data;
-  free (tl->app_id);
-  tl->app_id = strdup (app_id);
+  struct toplevel *t = data;
+  free (t->app_id);
+  t->app_id = strdup (app_id);
 }
 
 static void foreign_toplevel_handle_identifier (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *identifier) {
-  struct toplevel *tl = data;
+  struct toplevel *t = data;
   // the compositor must only send this event when the handle is created
-  tl->identifier = strdup (identifier);
+  t->identifier = strdup (identifier);
 }
 
 static const struct ext_foreign_toplevel_handle_v1_listener
@@ -45,15 +45,15 @@ static const struct ext_foreign_toplevel_handle_v1_listener
 static void foreign_toplevel_list_handle_toplevel (
     void *data, struct ext_foreign_toplevel_list_v1 *list,
     struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {
-  struct state    *s  = data;
-  struct toplevel *tl = calloc (1, sizeof (*tl));
+  struct toplevel      *t  = calloc (1, sizeof (*t));
+  struct toplevel_list *tl = data;
 
-  wl_list_insert (&s->toplevels, &tl->link);
+  wl_list_insert (&tl->toplevels, &t->link);
 
-  tl->handle = toplevel_handle;
+  t->handle = toplevel_handle;
 
   ext_foreign_toplevel_handle_v1_add_listener (toplevel_handle,
-                                               &foreign_toplevel_listener, tl);
+                                               &foreign_toplevel_listener, t);
 }
 
 static void foreign_toplevel_list_handle_finished (
@@ -65,30 +65,30 @@ static const struct ext_foreign_toplevel_list_v1_listener
         .finished = foreign_toplevel_list_handle_finished,
 };
 
-bool toplevel_init (struct state *s) {
-  if (!s->toplevel_list)
+bool toplevel_list_init (struct toplevel_list *tl) {
+  if (!tl->toplevel_list)
     return false;
 
   ext_foreign_toplevel_list_v1_add_listener (
-      s->toplevel_list, &foreign_toplevel_list_listener, s);
+      tl->toplevel_list, &foreign_toplevel_list_listener, tl);
   return true;
 }
 
-void toplevel_destroy (struct state *s) {
-  struct toplevel *tl, *tl_tmp;
+void toplevel_list_destroy (struct toplevel_list *tl) {
+  struct toplevel *t, *tmp;
 
-  wl_list_for_each_safe (tl, tl_tmp, &s->toplevels, link) {
-    wl_list_remove (&tl->link);
+  wl_list_for_each_safe (t, tmp, &tl->toplevels, link) {
+    wl_list_remove (&t->link);
 
-    free (tl->title);
-    free (tl->app_id);
-    free (tl->identifier);
+    free (t->title);
+    free (t->app_id);
+    free (t->identifier);
 
-    ext_foreign_toplevel_handle_v1_destroy (tl->handle);
+    ext_foreign_toplevel_handle_v1_destroy (t->handle);
 
-    free (tl);
+    free (t);
   }
 
-  if (s->toplevel_list != NULL)
-    ext_foreign_toplevel_list_v1_destroy (s->toplevel_list);
+  if (tl->toplevel_list != NULL)
+    ext_foreign_toplevel_list_v1_destroy (tl->toplevel_list);
 }
