@@ -1,40 +1,43 @@
 #include "toplevel_list.h"
 
 static void foreign_toplevel_handle_closed (
-    void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {}
+    void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {
+  struct toplevel_list_object *tlo = data;
+  tlo->closed                      = true;
+}
 
 static void foreign_toplevel_handle_done (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {
-  struct toplevel *t = data;
-  t->done            = true;
+  struct toplevel_list_object *tlo = data;
+  tlo->done                        = true;
 }
 
 static void foreign_toplevel_handle_title (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *title) {
-  struct toplevel *t = data;
-  free (t->title);
-  t->title = strdup (title);
+  struct toplevel_list_object *tlo = data;
+  free (tlo->title);
+  tlo->title = strdup (title);
 }
 
 static void foreign_toplevel_handle_app_id (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *app_id) {
-  struct toplevel *t = data;
-  free (t->app_id);
-  t->app_id = strdup (app_id);
+  struct toplevel_list_object *tlo = data;
+  free (tlo->app_id);
+  tlo->app_id = strdup (app_id);
 }
 
 static void foreign_toplevel_handle_identifier (
     void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
     const char *identifier) {
-  struct toplevel *t = data;
+  struct toplevel_list_object *tlo = data;
   // the compositor must only send this event when the handle is created
-  t->identifier = strdup (identifier);
+  tlo->identifier = strdup (identifier);
 }
 
 static const struct ext_foreign_toplevel_handle_v1_listener
-    foreign_toplevel_listener = {
+    foreign_toplevel_handle_listener = {
         .closed     = foreign_toplevel_handle_closed,
         .done       = foreign_toplevel_handle_done,
         .title      = foreign_toplevel_handle_title,
@@ -42,27 +45,28 @@ static const struct ext_foreign_toplevel_handle_v1_listener
         .identifier = foreign_toplevel_handle_identifier,
 };
 
-static void foreign_toplevel_list_handle_toplevel (
+static void foreign_toplevel_list_toplevel (
     void *data, struct ext_foreign_toplevel_list_v1 *list,
     struct ext_foreign_toplevel_handle_v1 *toplevel_handle) {
-  struct toplevel      *t  = calloc (1, sizeof (*t));
-  struct toplevel_list *tl = data;
+  struct toplevel_list        *tl  = data;
+  struct toplevel_list_object *tlo = calloc (1, sizeof (*tlo));
 
-  wl_list_insert (&tl->toplevels, &t->link);
+  wl_list_insert (&tl->toplevels, &tlo->link);
 
-  t->handle = toplevel_handle;
+  tlo->handle = toplevel_handle;
 
-  ext_foreign_toplevel_handle_v1_add_listener (toplevel_handle,
-                                               &foreign_toplevel_listener, t);
+  ext_foreign_toplevel_handle_v1_add_listener (
+      toplevel_handle, &foreign_toplevel_handle_listener, tlo);
 }
 
-static void foreign_toplevel_list_handle_finished (
-    void *data, struct ext_foreign_toplevel_list_v1 *list) {}
+static void
+foreign_toplevel_list_finished (void                                *data,
+                                struct ext_foreign_toplevel_list_v1 *list) {}
 
 static const struct ext_foreign_toplevel_list_v1_listener
     foreign_toplevel_list_listener = {
-        .toplevel = foreign_toplevel_list_handle_toplevel,
-        .finished = foreign_toplevel_list_handle_finished,
+        .toplevel = foreign_toplevel_list_toplevel,
+        .finished = foreign_toplevel_list_finished,
 };
 
 bool toplevel_list_init (struct toplevel_list *tl) {
@@ -75,18 +79,18 @@ bool toplevel_list_init (struct toplevel_list *tl) {
 }
 
 void toplevel_list_destroy (struct toplevel_list *tl) {
-  struct toplevel *t, *tmp;
+  struct toplevel_list_object *tlo, *tmp;
 
-  wl_list_for_each_safe (t, tmp, &tl->toplevels, link) {
-    wl_list_remove (&t->link);
+  wl_list_for_each_safe (tlo, tmp, &tl->toplevels, link) {
+    wl_list_remove (&tlo->link);
 
-    free (t->title);
-    free (t->app_id);
-    free (t->identifier);
+    free (tlo->title);
+    free (tlo->app_id);
+    free (tlo->identifier);
 
-    ext_foreign_toplevel_handle_v1_destroy (t->handle);
+    ext_foreign_toplevel_handle_v1_destroy (tlo->handle);
 
-    free (t);
+    free (tlo);
   }
 
   if (tl->toplevel_list != NULL)

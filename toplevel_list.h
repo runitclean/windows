@@ -3,20 +3,20 @@
 #include "ext-foreign-toplevel-list-v1-protocol.h"
 #include "global.h"
 
-struct toplevel {
+struct toplevel_list {
+  struct ext_foreign_toplevel_list_v1 *toplevel_list;
+  struct wl_list                       toplevels;
+};
+
+struct toplevel_list_object {
   struct ext_foreign_toplevel_handle_v1 *handle;
   struct wl_list                         link;
 
-  bool done;
+  bool closed, done;
 
   char *identifier;
   char *title;
   char *app_id;
-};
-
-struct toplevel_list {
-  struct ext_foreign_toplevel_list_v1 *toplevel_list;
-  struct wl_list                       toplevels;
 };
 
 bool toplevel_list_init (struct toplevel_list *tl);
