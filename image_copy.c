@@ -21,21 +21,43 @@ static const struct ext_image_copy_capture_frame_v1_listener
         .failed = image_copy_capture_frame_failed,
 };
 
+void image_copy_registry_global (void *data, struct wl_registry *registry,
+                                 uint32_t name, const char *interface,
+                                 uint32_t version) {
+  struct image_copy *ic = data;
+
+  if (strcmp (interface,
+              ext_foreign_toplevel_image_capture_source_manager_v1_interface
+                  .name) == 0)
+    ic->foreign_toplevel_image_capture_source_manager = wl_registry_bind (
+        registry, name,
+        &ext_foreign_toplevel_image_capture_source_manager_v1_interface, 1);
+  else if (strcmp (interface,
+                   ext_image_copy_capture_manager_v1_interface.name) == 0)
+    ic->image_copy_capture_manager = wl_registry_bind (
+        registry, name, &ext_image_copy_capture_manager_v1_interface, 1);
+}
+
+void image_copy_registry_global_remove (void               *data,
+                                        struct wl_registry *registry,
+                                        uint32_t            name) {}
+
 struct image_copy_frame *
-image_copy_from_toplevel (struct image_copy                     *ic,
-                          struct ext_foreign_toplevel_handle_v1 *handle) {
+image_copy_frame_from_toplevel (struct image_copy                     *ic,
+                                struct ext_foreign_toplevel_handle_v1 *handle) {
   struct image_copy_frame *icf = calloc (1, sizeof (*icf));
 
   struct ext_image_capture_source_v1 *source =
       ext_foreign_toplevel_image_capture_source_manager_v1_create_source (
-          ic->toplevel_source_manager, handle);
+          ic->foreign_toplevel_image_capture_source_manager, handle);
 
   icf->session = ext_image_copy_capture_manager_v1_create_session (
-      ic->image_copy_manager, source, false);
-  icf->frame = ext_image_copy_capture_session_v1_create_frame (icf->session);
+      ic->image_copy_capture_manager, source, false);
 
+  icf->frame = ext_image_copy_capture_session_v1_create_frame (icf->session);
   ext_image_copy_capture_frame_v1_add_listener (
       icf->frame, &image_copy_capture_frame_listener, icf);
+
   ext_image_capture_source_v1_destroy (source);
 
   return icf;
@@ -43,8 +65,6 @@ image_copy_from_toplevel (struct image_copy                     *ic,
 
 void image_copy_init (struct image_copy_frame *icf, struct wl_buffer *buffer) {
   icf->buffer = buffer;
-  icf->ready  = false;
-  icf->failed = false;
 
   ext_image_copy_capture_frame_v1_attach_buffer (icf->frame, buffer);
   ext_image_copy_capture_frame_v1_damage_buffer (icf->frame, 0, 0, INT32_MAX,

@@ -6,9 +6,10 @@
 #include "global.h"
 
 struct image_copy {
-  struct ext_image_copy_capture_manager_v1 *image_copy_manager;
   struct ext_foreign_toplevel_image_capture_source_manager_v1
-      *toplevel_source_manager;
+      *foreign_toplevel_image_capture_source_manager;
+
+  struct ext_image_copy_capture_manager_v1 *image_copy_capture_manager;
 };
 
 struct image_copy_frame {
@@ -20,9 +21,16 @@ struct image_copy_frame {
   bool ready, failed;
 };
 
+void image_copy_registry_global (void *data, struct wl_registry *registry,
+                                 uint32_t name, const char *interface,
+                                 uint32_t version);
+void image_copy_registry_global_remove (void               *data,
+                                        struct wl_registry *registry,
+                                        uint32_t            name);
+
 struct image_copy_frame *
-image_copy_from_toplevel (struct image_copy                     *ic,
-                          struct ext_foreign_toplevel_handle_v1 *handle);
+image_copy_frame_from_toplevel (struct image_copy                     *ic,
+                                struct ext_foreign_toplevel_handle_v1 *handle);
 
 void image_copy_init (struct image_copy_frame *icf, struct wl_buffer *buffer);
 void image_copy_destroy (struct image_copy_frame *icf);
