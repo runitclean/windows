@@ -54,14 +54,16 @@ static void foreign_toplevel_list_toplevel (
   wl_list_insert (&tl->toplevels, &tlo->link);
 
   tlo->handle = toplevel_handle;
-
   ext_foreign_toplevel_handle_v1_add_listener (
-      toplevel_handle, &foreign_toplevel_handle_listener, tlo);
+      tlo->handle, &foreign_toplevel_handle_listener, tlo);
 }
 
 static void
 foreign_toplevel_list_finished (void                                *data,
-                                struct ext_foreign_toplevel_list_v1 *list) {}
+                                struct ext_foreign_toplevel_list_v1 *list) {
+  struct toplevel_list *tl = data;
+  tl->finished             = true;
+}
 
 static const struct ext_foreign_toplevel_list_v1_listener
     foreign_toplevel_list_listener = {
@@ -69,13 +71,25 @@ static const struct ext_foreign_toplevel_list_v1_listener
         .finished = foreign_toplevel_list_finished,
 };
 
-bool toplevel_list_init (struct toplevel_list *tl) {
-  if (!tl->toplevel_list)
-    return false;
+void toplevel_list_registry_global (void *data, struct wl_registry *registry,
+                                    uint32_t name, const char *interface,
+                                    uint32_t version) {
+  struct toplevel_list *tl = data;
+
+  if (strcmp (interface, ext_foreign_toplevel_list_v1_interface.name) == 0)
+    tl->toplevel_list = wl_registry_bind (
+        registry, name, &ext_foreign_toplevel_list_v1_interface, 1);
+}
+
+void toplevel_list_registry_global_remove (void               *data,
+                                           struct wl_registry *registry,
+                                           uint32_t            name) {}
+
+void toplevel_list_init (struct toplevel_list *tl) {
+  wl_list_init (&tl->toplevels);
 
   ext_foreign_toplevel_list_v1_add_listener (
       tl->toplevel_list, &foreign_toplevel_list_listener, tl);
-  return true;
 }
 
 void toplevel_list_destroy (struct toplevel_list *tl) {
