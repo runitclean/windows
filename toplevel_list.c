@@ -107,6 +107,6 @@ void toplevel_list_destroy (struct toplevel_list *tl) {
     free (tlo);
   }
 
-  if (tl->toplevel_list != NULL)
+  if (tl->toplevel_list)
     ext_foreign_toplevel_list_v1_destroy (tl->toplevel_list);
 }
