@@ -94,17 +94,11 @@ void xdg_shell_init (struct xdg_shell *shell, const char *title,
 }
 
 void xdg_shell_destroy (struct xdg_shell *shell) {
-  if (shell->xdg_toplevel)
-    xdg_toplevel_destroy (shell->xdg_toplevel);
+  xdg_toplevel_destroy (shell->xdg_toplevel);
+  xdg_surface_destroy (shell->xdg_surface);
+  xdg_wm_base_destroy (shell->xdg_wm_base);
 
-  if (shell->xdg_surface)
-    xdg_surface_destroy (shell->xdg_surface);
-
-  if (shell->xdg_wm_base)
-    xdg_wm_base_destroy (shell->xdg_wm_base);
-
-  if (shell->wl_surface)
-    wl_surface_destroy (shell->wl_surface);
+  wl_surface_destroy (shell->wl_surface);
 }
 
 void xdg_shell_present (struct xdg_shell *shell, struct wl_buffer *buffer) {
