@@ -61,8 +61,22 @@ static void foreign_toplevel_list_toplevel (
 static void
 foreign_toplevel_list_finished (void                                *data,
                                 struct ext_foreign_toplevel_list_v1 *list) {
-  struct toplevel_list *tl = data;
-  tl->finished             = true;
+  struct toplevel_list        *tl = data;
+  struct toplevel_list_object *tlo, *tmp;
+
+  wl_list_for_each_safe (tlo, tmp, &tl->toplevels, link) {
+    wl_list_remove (&tlo->link);
+
+    free (tlo->title);
+    free (tlo->app_id);
+    free (tlo->identifier);
+
+    ext_foreign_toplevel_handle_v1_destroy (tlo->handle);
+
+    free (tlo);
+  }
+
+  ext_foreign_toplevel_list_v1_destroy (tl->toplevel_list);
 }
 
 static const struct ext_foreign_toplevel_list_v1_listener
@@ -93,20 +107,5 @@ void toplevel_list_init (struct toplevel_list *tl) {
 }
 
 void toplevel_list_destroy (struct toplevel_list *tl) {
-  struct toplevel_list_object *tlo, *tmp;
-
-  wl_list_for_each_safe (tlo, tmp, &tl->toplevels, link) {
-    wl_list_remove (&tlo->link);
-
-    free (tlo->title);
-    free (tlo->app_id);
-    free (tlo->identifier);
-
-    ext_foreign_toplevel_handle_v1_destroy (tlo->handle);
-
-    free (tlo);
-  }
-
-  if (tl->toplevel_list)
-    ext_foreign_toplevel_list_v1_destroy (tl->toplevel_list);
+  ext_foreign_toplevel_list_v1_stop (tl->toplevel_list);
 }
