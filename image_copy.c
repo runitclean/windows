@@ -1,5 +1,40 @@
 #include "image_copy.h"
 
+static void image_copy_capture_session_buffer_size (
+    void *data, struct ext_image_copy_capture_session_v1 *session,
+    uint32_t width, uint32_t height) {
+  struct image_copy_frame *icf = data;
+  icf->width                   = width;
+  icf->height                  = height;
+}
+
+static void image_copy_capture_session_shm_format (
+    void *data, struct ext_image_copy_capture_session_v1 *session,
+    uint32_t format) {
+  struct image_copy_frame *icf = data;
+  icf->shm_format              = format;
+}
+
+static void image_copy_capture_session_done (
+    void *data, struct ext_image_copy_capture_session_v1 *session) {
+  struct image_copy_frame *icf = data;
+  icf->done                    = true;
+}
+
+static void image_copy_capture_session_stopped (
+    void *data, struct ext_image_copy_capture_session_v1 *session) {
+  struct image_copy_frame *icf = data;
+  icf->stopped                 = true;
+}
+
+static const struct ext_image_copy_capture_session_v1_listener
+    image_copy_capture_session_listener = {
+        .buffer_size = image_copy_capture_session_buffer_size,
+        .shm_format  = image_copy_capture_session_shm_format,
+        .done        = image_copy_capture_session_done,
+        .stopped     = image_copy_capture_session_stopped,
+};
+
 static void
 image_copy_capture_frame_ready (void                                   *data,
                                 struct ext_image_copy_capture_frame_v1 *frame) {
@@ -53,6 +88,8 @@ image_copy_frame_from_toplevel (struct image_copy                     *ic,
 
   icf->session = ext_image_copy_capture_manager_v1_create_session (
       ic->image_copy_capture_manager, source, false);
+  ext_image_copy_capture_session_v1_add_listener (
+      icf->session, &image_copy_capture_session_listener, icf);
 
   icf->frame = ext_image_copy_capture_session_v1_create_frame (icf->session);
   ext_image_copy_capture_frame_v1_add_listener (
