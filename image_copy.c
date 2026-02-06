@@ -12,7 +12,10 @@ static void image_copy_capture_session_shm_format (
     void *data, struct ext_image_copy_capture_session_v1 *session,
     uint32_t format) {
   struct image_copy_frame *icf = data;
-  icf->shm_format              = format;
+
+  // all renderers should support argb8888
+  if (format == WL_SHM_FORMAT_ARGB8888)
+    icf->shm_format = format;
 }
 
 static void image_copy_capture_session_done (
