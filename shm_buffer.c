@@ -13,8 +13,8 @@ static void shm_buffer_name (char *buffer) {
 }
 
 static int shm_buffer_open (void) {
-  char *name    = "/windows-XXXXXX";
-  int   retries = 100;
+  char name[]  = "/windows-XXXXXX";
+  int  retries = 100;
 
   do {
     shm_buffer_name (name + strlen (name) - 6);
@@ -46,10 +46,10 @@ static int shm_buffer_create (off_t size) {
 void shm_buffer_registry_global (void *data, struct wl_registry *registry,
                                  uint32_t name, const char *interface,
                                  uint32_t version) {
-  struct wl_shm *shm = data;
+  struct wl_shm **shm = data;
 
   if (strcmp (interface, wl_shm_interface.name) == 0)
-    shm = wl_registry_bind (registry, name, &wl_shm_interface, 1);
+    *shm = wl_registry_bind (registry, name, &wl_shm_interface, 1);
 }
 
 void shm_buffer_registry_global_remove (void               *data,
