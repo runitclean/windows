@@ -18,7 +18,7 @@ static void registry_global_remove (void *data, struct wl_registry *registry,
   toplevel_list_registry_global_remove (w->tl, registry, name);
   image_copy_registry_global_remove (w->ic, registry, name);
   xdg_shell_registry_global_remove (w->xs, registry, name);
-  shm_buffer_registry_global_remove (w->shm, registry, name);
+  shm_buffer_registry_global_remove (&w->shm, registry, name);
 }
 
 static const struct wl_registry_listener registry_listener = {
