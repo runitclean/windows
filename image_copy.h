@@ -20,7 +20,7 @@ struct image_copy_frame {
 
   uint32_t width, height, shm_format;
 
-  bool done, stopped, ready, failed;
+  bool stopped, ready, failed;
 };
 
 void image_copy_registry_global (void *data, struct wl_registry *registry,

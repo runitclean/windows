@@ -1,5 +1,26 @@
 #include "image_copy.h"
 
+static void
+image_copy_capture_frame_ready (void                                   *data,
+                                struct ext_image_copy_capture_frame_v1 *frame) {
+  struct image_copy_frame *icf = data;
+  icf->ready                   = true;
+}
+
+static void
+image_copy_capture_frame_failed (void                                   *data,
+                                 struct ext_image_copy_capture_frame_v1 *frame,
+                                 uint32_t reason) {
+  struct image_copy_frame *icf = data;
+  icf->failed                  = true;
+}
+
+static const struct ext_image_copy_capture_frame_v1_listener
+    image_copy_capture_frame_listener = {
+        .ready  = image_copy_capture_frame_ready,
+        .failed = image_copy_capture_frame_failed,
+};
+
 static void image_copy_capture_session_buffer_size (
     void *data, struct ext_image_copy_capture_session_v1 *session,
     uint32_t width, uint32_t height) {
@@ -21,7 +42,10 @@ static void image_copy_capture_session_shm_format (
 static void image_copy_capture_session_done (
     void *data, struct ext_image_copy_capture_session_v1 *session) {
   struct image_copy_frame *icf = data;
-  icf->done                    = true;
+  icf->frame = ext_image_copy_capture_session_v1_create_frame (session);
+
+  ext_image_copy_capture_frame_v1_add_listener (
+      icf->frame, &image_copy_capture_frame_listener, icf);
 }
 
 static void image_copy_capture_session_stopped (
@@ -36,27 +60,6 @@ static const struct ext_image_copy_capture_session_v1_listener
         .shm_format  = image_copy_capture_session_shm_format,
         .done        = image_copy_capture_session_done,
         .stopped     = image_copy_capture_session_stopped,
-};
-
-static void
-image_copy_capture_frame_ready (void                                   *data,
-                                struct ext_image_copy_capture_frame_v1 *frame) {
-  struct image_copy_frame *icf = data;
-  icf->ready                   = true;
-}
-
-static void
-image_copy_capture_frame_failed (void                                   *data,
-                                 struct ext_image_copy_capture_frame_v1 *frame,
-                                 uint32_t reason) {
-  struct image_copy_frame *icf = data;
-  icf->failed                  = true;
-}
-
-static const struct ext_image_copy_capture_frame_v1_listener
-    image_copy_capture_frame_listener = {
-        .ready  = image_copy_capture_frame_ready,
-        .failed = image_copy_capture_frame_failed,
 };
 
 void image_copy_registry_global (void *data, struct wl_registry *registry,
@@ -93,10 +96,6 @@ image_copy_frame_from_toplevel (struct image_copy                     *ic,
       ic->image_copy_capture_manager, source, false);
   ext_image_copy_capture_session_v1_add_listener (
       icf->session, &image_copy_capture_session_listener, icf);
-
-  icf->frame = ext_image_copy_capture_session_v1_create_frame (icf->session);
-  ext_image_copy_capture_frame_v1_add_listener (
-      icf->frame, &image_copy_capture_frame_listener, icf);
 
   ext_image_capture_source_v1_destroy (source);
 
