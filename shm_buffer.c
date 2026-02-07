@@ -43,6 +43,19 @@ static int shm_buffer_create (off_t size) {
   return fd;
 }
 
+void shm_buffer_registry_global (void *data, struct wl_registry *registry,
+                                 uint32_t name, const char *interface,
+                                 uint32_t version) {
+  struct wl_shm *shm = data;
+
+  if (strcmp (interface, wl_shm_interface.name) == 0)
+    shm = wl_registry_bind (registry, name, &wl_shm_interface, 1);
+}
+
+void shm_buffer_registry_global_remove (void               *data,
+                                        struct wl_registry *registry,
+                                        uint32_t            name) {}
+
 struct shm_buffer *shm_buffer_init (struct wl_shm     *shm,
                                     enum wl_shm_format format, int32_t width,
                                     int32_t height, int32_t stride) {
