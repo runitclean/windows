@@ -1,5 +1,17 @@
 #include "image_copy.h"
 
+static void image_copy_capture_frame_transform (
+    void *data, struct ext_image_copy_capture_frame_v1 *frame,
+    uint32_t transform) {};
+
+static void image_copy_capture_frame_damage (
+    void *data, struct ext_image_copy_capture_frame_v1 *frame, int32_t x,
+    int32_t y, int32_t width, int32_t height) {};
+
+static void image_copy_capture_frame_presentation_time (
+    void *data, struct ext_image_copy_capture_frame_v1 *frame,
+    uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec) {};
+
 static void
 image_copy_capture_frame_ready (void                                   *data,
                                 struct ext_image_copy_capture_frame_v1 *frame) {
@@ -17,8 +29,11 @@ image_copy_capture_frame_failed (void                                   *data,
 
 static const struct ext_image_copy_capture_frame_v1_listener
     image_copy_capture_frame_listener = {
-        .ready  = image_copy_capture_frame_ready,
-        .failed = image_copy_capture_frame_failed,
+        .transform         = image_copy_capture_frame_transform,
+        .damage            = image_copy_capture_frame_damage,
+        .presentation_time = image_copy_capture_frame_presentation_time,
+        .ready             = image_copy_capture_frame_ready,
+        .failed            = image_copy_capture_frame_failed,
 };
 
 static void image_copy_capture_session_buffer_size (
