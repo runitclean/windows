@@ -39,6 +39,14 @@ static void image_copy_capture_session_shm_format (
     icf->shm_format = format;
 }
 
+static void image_copy_capture_session_dmabuf_device (
+    void *data, struct ext_image_copy_capture_session_v1 *session,
+    struct wl_array *device) {}
+
+static void image_copy_capture_session_dmabuf_format (
+    void *data, struct ext_image_copy_capture_session_v1 *session,
+    uint32_t format, struct wl_array *modifiers) {}
+
 static void image_copy_capture_session_done (
     void *data, struct ext_image_copy_capture_session_v1 *session) {
   struct image_copy_frame *icf = data;
@@ -56,10 +64,12 @@ static void image_copy_capture_session_stopped (
 
 static const struct ext_image_copy_capture_session_v1_listener
     image_copy_capture_session_listener = {
-        .buffer_size = image_copy_capture_session_buffer_size,
-        .shm_format  = image_copy_capture_session_shm_format,
-        .done        = image_copy_capture_session_done,
-        .stopped     = image_copy_capture_session_stopped,
+        .buffer_size   = image_copy_capture_session_buffer_size,
+        .shm_format    = image_copy_capture_session_shm_format,
+        .dmabuf_device = image_copy_capture_session_dmabuf_device,
+        .dmabuf_format = image_copy_capture_session_dmabuf_format,
+        .done          = image_copy_capture_session_done,
+        .stopped       = image_copy_capture_session_stopped,
 };
 
 void image_copy_registry_global (void *data, struct wl_registry *registry,
