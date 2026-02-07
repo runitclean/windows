@@ -50,6 +50,7 @@ static void image_copy_capture_session_dmabuf_format (
 static void image_copy_capture_session_done (
     void *data, struct ext_image_copy_capture_session_v1 *session) {
   struct image_copy_frame *icf = data;
+  icf->done                    = true;
   icf->frame = ext_image_copy_capture_session_v1_create_frame (session);
 
   ext_image_copy_capture_frame_v1_add_listener (
