@@ -12,11 +12,8 @@ struct toplevel_list_object {
   struct ext_foreign_toplevel_handle_v1 *handle;
   struct wl_list                         link;
 
-  bool closed, done;
-
-  char *identifier;
-  char *title;
-  char *app_id;
+  bool  closed, done;
+  char *identifier, *title, *app_id;
 };
 
 void toplevel_list_registry_global (void *data, struct wl_registry *registry,

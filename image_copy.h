@@ -18,9 +18,8 @@ struct image_copy_frame {
 
   struct wl_buffer *buffer;
 
+  bool     done, stopped, ready, failed;
   uint32_t width, height, shm_format;
-
-  bool done, stopped, ready, failed;
 };
 
 void image_copy_registry_global (void *data, struct wl_registry *registry,

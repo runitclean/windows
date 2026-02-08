@@ -21,11 +21,8 @@ struct windows {
 struct windows_state {
   struct wl_list link;
 
-  char *identifier;
-  char *title;
-  char *app_id;
-
-  bool error;
+  bool  error;
+  char *identifier, *title, *app_id;
 
   struct shm_buffer *sb;
 };
