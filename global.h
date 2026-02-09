@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cairo/cairo.h>
 #include <fcntl.h>
 #include <math.h>
 #include <stdbool.h>
