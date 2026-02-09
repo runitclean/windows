@@ -18,8 +18,12 @@ SRCS := $(wildcard *.c)
 OBJS := $(SRCS:.c=.o)
 DEPS := $(SRCS:.c=.d)
 
-CFLAGS += $(shell pkg-config --cflags wayland-client)
-LDLIBS += $(shell pkg-config --libs wayland-client)
+CFLAGS += \
+	$(shell pkg-config --cflags wayland-client) \
+	$(shell pkg-config --cflags cairo)
+LDLIBS += \
+	$(shell pkg-config --libs wayland-client) \
+	$(shell pkg-config --libs cairo)
 
 xdg-shell-protocol.h: \
 	$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml
