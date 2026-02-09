@@ -2,7 +2,7 @@
 
 static void expose_algorithm_phantom (struct expose_algorithm_window *eaw,
                                       uint32_t window_count) {
-  for (int32_t i = 0; i < window_count; i++) {
+  for (uint32_t i = 0; i < window_count; i++) {
     eaw[i].phantom_width  = eaw[i].width + 30;
     eaw[i].phantom_height = eaw[i].height + 30;
   }
@@ -13,7 +13,7 @@ static int32_t expose_algorithm_nfdh (int32_t shelf_width,
                                       uint32_t window_count) {
   int32_t current_x = 0, current_y = 0, current_shelf_height = 0;
 
-  for (int32_t i = 0; i < window_count; i++) {
+  for (uint32_t i = 0; i < window_count; i++) {
     eaw[i].x = current_x;
     eaw[i].y = current_y;
 
@@ -42,7 +42,7 @@ static int32_t expose_algorithm_compare (const void *a, const void *b) {
   if (w1->width != w2->width)
     return w2->width - w1->width;
 
-  return w2->node - w1->node;
+  return (int32_t) w2->node - (int32_t) w1->node;
 }
 
 static struct expose_algorithm_shelf
@@ -56,7 +56,7 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
   int32_t shelf_width_min, shelf_width_max, shelf_height_min, shelf_height_max;
   shelf_width_min = shelf_width_max = 0;
 
-  for (int i = 0; i < ea->window_count; i++) {
+  for (uint32_t i = 0; i < ea->window_count; i++) {
     shelf_width_min  = fmax (shelf_width_min, ea->eaw[i].phantom_width);
     shelf_width_max += ea->eaw[i].phantom_width;
   }
@@ -77,7 +77,7 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
   shelf_height_min =
       expose_algorithm_nfdh (shelf_width_max, ea->eaw, ea->window_count);
 
-  float ratio_min = (float) shelf_height_min / shelf_width_max;
+  float ratio_min = (float) shelf_height_min / (float) shelf_width_max;
 
   if (ratio_min >= target_ratio) {
     eas.width  = shelf_width_max;
@@ -85,8 +85,8 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
     return eas;
   }
 
-  uint32_t binary_shelf_width, binary_shelf_height;
-  float    binary_ratio;
+  int32_t binary_shelf_width, binary_shelf_height;
+  float   binary_ratio;
 
   while ((float) shelf_width_max / (float) shelf_width_min > 1.2) {
     binary_shelf_width = sqrt (shelf_width_min * shelf_width_max);
@@ -123,7 +123,8 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
   float scale_factor  = width_ratio < height_ratio ? width_ratio : height_ratio;
   scale_factor       *= 0.9;
 
-  uint32_t strip_width, strip_height, strip_baseline, strip_index;
+  int32_t  strip_width, strip_height, strip_baseline;
+  uint32_t strip_index;
   strip_width = strip_height = strip_baseline = strip_index = 0;
 
   for (uint32_t i = 0; i < ea->window_count; i++) {
