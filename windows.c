@@ -32,6 +32,7 @@ int main (void) {
   w.tl = calloc (1, sizeof (*w.tl));
   w.ic = calloc (1, sizeof (*w.ic));
   w.xs = calloc (1, sizeof (*w.xs));
+  w.ea = calloc (1, sizeof (*w.ea));
 
   w.display  = wl_display_connect (NULL);
   w.registry = wl_display_get_registry (w.display);
@@ -84,13 +85,37 @@ int main (void) {
     ws->error = icf->stopped || icf->failed;
 
     wl_list_insert (&w.windows, &ws->link);
+    w.ea->window_count++;
 
     image_copy_destroy (icf);
   }
 
   toplevel_list_destroy (w.tl);
 
+  xdg_shell_init (w.xs, "Window Overview", "windows");
+
+  while (!w.xs->configure)
+    wl_display_roundtrip (w.display);
+
   struct windows_state *ws, *tmp;
+
+  w.ea->eaw = calloc (w.ea->window_count, sizeof (*w.ea->eaw));
+
+  int32_t i = 0;
+
+  wl_list_for_each (ws, &w.windows, link) {
+    struct expose_algorithm_window *eaw = &w.ea->eaw[i];
+
+    eaw->node   = i++;
+    eaw->width  = ws->sb->width;
+    eaw->height = ws->sb->height;
+    eaw->data   = ws;
+  }
+
+  w.ea->display_width  = w.xs->width * w.xs->preferred_buffer_scale;
+  w.ea->display_height = w.xs->height * w.xs->preferred_buffer_scale;
+
+  expose_algorithm_init (w.ea);
 
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
@@ -107,4 +132,6 @@ int main (void) {
   free (w.tl);
   free (w.ic);
   free (w.xs);
+  free (w.ea->eaw);
+  free (w.ea);
 }
