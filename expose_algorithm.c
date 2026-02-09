@@ -136,7 +136,7 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
       if (eaw.phantom_height > strip_height)
         strip_height = eaw.phantom_height;
     } else {
-      for (uint32_t j = strip_index; strip_index < i; j++) {
+      for (uint32_t j = strip_index; j < i; j++) {
         ea->eaw[j].x += (eas.width - strip_width) / 2;
         ea->eaw[j].y += (strip_height - ea->eaw[j].phantom_height) / 2;
       }
