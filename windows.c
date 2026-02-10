@@ -39,9 +39,6 @@ static void usage (FILE *out, const char *name) {
 }
 
 int32_t main (int argc, char **argv) {
-  if (argc == 1)
-    return 1;
-
   int32_t opt;
 
   char   *end;
