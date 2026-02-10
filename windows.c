@@ -38,7 +38,7 @@ static void usage (FILE *out, const char *name) {
            name);
 }
 
-int32_t main (int argc, char **argv) {
+int32_t main (int32_t argc, char **argv) {
   int32_t opt;
 
   char   *end;
