@@ -163,6 +163,7 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
     eaw->x += window_margin / 2;
     eaw->x *= scale_factor;
     eaw->x += (ea->display_width - eas.width * scale_factor) / 2;
+
     eaw->y += window_margin / 2;
     eaw->y *= scale_factor;
     eaw->y += (ea->display_height - eas.height * scale_factor) / 2;
@@ -170,6 +171,12 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
 }
 
 void expose_algorithm_init (struct expose_algorithm *ea) {
+  ea->eaw = calloc (ea->window_count, sizeof (*ea->eaw));
+}
+
+void expose_algorithm_destroy (struct expose_algorithm *ea) { free (ea->eaw); }
+
+void expose_algorithm_decide (struct expose_algorithm *ea) {
   expose_algorithm_phantom (ea->eaw, ea->window_count);
   expose_algorithm_pack (expose_algorithm_trial (ea), ea);
 }

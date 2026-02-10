@@ -25,3 +25,6 @@ struct expose_algorithm_window {
 };
 
 void expose_algorithm_init (struct expose_algorithm *ea);
+void expose_algorithm_destroy (struct expose_algorithm *ea);
+
+void expose_algorithm_decide (struct expose_algorithm *ea);
