@@ -8,7 +8,7 @@ struct cairo_draw *cairo_draw_init (void *data, int32_t width, int32_t height,
                                                      width, height, stride);
   cd->context = cairo_create (cd->surface);
 
-  cairo_set_source_rgb (cd->context, 0, 0, 0);
+  cairo_set_source_rgba (cd->context, 0, 0, 0, 1);
   cairo_paint (cd->context);
 
   return cd;
@@ -35,9 +35,10 @@ void cairo_draw_window (struct cairo_draw *cd, void *data, int32_t width,
   cairo_paint (cd->context);
 
   if (focused) {
-    cairo_set_source_rgb (cd->context, 1, 1, 1);
-    cairo_set_line_width (cd->context, 4);
-    cairo_rectangle (cd->context, 0, 0, width * scale, height * scale);
+    cairo_set_source_rgba (cd->context, 1, 1, 1, 1);
+    cairo_set_line_width (cd->context, 2 / scale);
+    cairo_rectangle (cd->context, -2 / scale, -2 / scale, width + 4 / scale,
+                     height + 4 / scale);
     cairo_stroke (cd->context);
   }
 
