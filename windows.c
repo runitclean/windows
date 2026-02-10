@@ -26,7 +26,51 @@ static const struct wl_registry_listener registry_listener = {
     .global_remove = registry_global_remove,
 };
 
-int main (void) {
+static void usage (FILE *out, const char *name) {
+  fprintf (out,
+           "Usage: %s [options...]\n"
+           "\n"
+           " -h             Show this help message and quit.\n"
+           " -g <geometry>  Configure monitor geometry.\n"
+           " -s <scale>     Configure monitor scale factor.\n"
+           "\n"
+           "Copyright (C) 2026 Jing Huang.\n",
+           name);
+}
+
+int32_t main (int argc, char **argv) {
+  if (argc == 1)
+    return 1;
+
+  int32_t opt;
+
+  char   *end;
+  int32_t width, height;
+  float   scale;
+
+  width = height = scale = 1;
+
+  while ((opt = getopt (argc, argv, "hg:s:")) != -1) {
+    switch (opt) {
+    case 'h':
+      usage (stdout, *argv);
+      return 0;
+    case 'g':
+      width  = strtol (optarg, &end, 10);
+      height = strtol (++end, &end, 10);
+      break;
+    case 's':
+      scale = atof (optarg);
+      break;
+    default:
+      usage (stderr, *argv);
+      return 1;
+    }
+  }
+
+  if (width <= 1 || height <= 1)
+    return 1;
+
   struct windows w;
 
   w.tl = calloc (1, sizeof (*w.tl));
@@ -109,10 +153,8 @@ int main (void) {
     eaw->data   = ws;
   }
 
-  w.ea->display_width =
-      2160 / 1.4; // w.xs->width * w.xs->preferred_buffer_scale;
-  w.ea->display_height =
-      1440 / 1.4; // w.xs->height * w.xs->preferred_buffer_scale;
+  w.ea->display_width  = width / scale;
+  w.ea->display_height = height / scale;
 
   expose_algorithm_decide (w.ea);
 
