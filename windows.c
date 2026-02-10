@@ -54,9 +54,6 @@ int main (void) {
     while (!tlo->closed && !tlo->done)
       wl_display_roundtrip (w.display);
 
-    printf ("id: %s; title: %s; app: %s\n", tlo->identifier, tlo->title,
-            tlo->app_id); // TODO: remove
-
     ws->identifier = strdup (tlo->identifier);
     ws->title      = strdup (tlo->title);
     ws->app_id     = strdup (tlo->app_id);
@@ -112,10 +109,39 @@ int main (void) {
     eaw->data   = ws;
   }
 
-  w.ea->display_width  = w.xs->width * w.xs->preferred_buffer_scale;
-  w.ea->display_height = w.xs->height * w.xs->preferred_buffer_scale;
+  w.ea->display_width =
+      2160 / 1.4; // w.xs->width * w.xs->preferred_buffer_scale;
+  w.ea->display_height =
+      1440 / 1.4; // w.xs->height * w.xs->preferred_buffer_scale;
 
   expose_algorithm_init (w.ea);
+
+  struct shm_buffer *sb =
+      shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
+                       w.ea->display_height, w.ea->display_width * 4);
+
+  struct cairo_draw *cd =
+      cairo_draw_init (sb->data, sb->width, sb->height, sb->stride);
+
+  for (uint32_t i = 0; i < w.ea->window_count; i++) {
+    struct expose_algorithm_window eaw = w.ea->eaw[i];
+    struct windows_state          *ws  = eaw.data;
+
+    cairo_draw_window (cd, ws->sb->data, ws->sb->width, ws->sb->height,
+                       ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
+                       eaw.focused);
+  }
+
+  xdg_shell_present (w.xs, sb->buffer);
+
+  while (!w.xs->close) {
+    if (wl_display_dispatch (w.display) == -1)
+      break;
+  }
+
+  cairo_draw_destroy (cd);
+
+  xdg_shell_destroy (w.xs);
 
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);

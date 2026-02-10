@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cairo_draw.h"
 #include "expose_algorithm.h"
 #include "global.h"
 #include "image_copy.h"
