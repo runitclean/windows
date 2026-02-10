@@ -13,6 +13,7 @@ struct windows {
   struct image_copy       *ic;
   struct xdg_shell        *xs;
   struct expose_algorithm *ea;
+  struct cairo_draw       *cd;
 
   struct wl_display  *display;
   struct wl_registry *registry;

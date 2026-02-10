@@ -33,6 +33,7 @@ int main (void) {
   w.ic = calloc (1, sizeof (*w.ic));
   w.xs = calloc (1, sizeof (*w.xs));
   w.ea = calloc (1, sizeof (*w.ea));
+  w.cd = calloc (1, sizeof (*w.cd));
 
   w.display  = wl_display_connect (NULL);
   w.registry = wl_display_get_registry (w.display);
@@ -120,14 +121,13 @@ int main (void) {
       shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
                        w.ea->display_height, w.ea->display_width * 4);
 
-  struct cairo_draw *cd =
-      cairo_draw_init (sb->data, sb->width, sb->height, sb->stride);
+  cairo_draw_init (w.cd, sb->data, sb->width, sb->height, sb->stride);
 
   for (uint32_t i = 0; i < w.ea->window_count; i++) {
     struct expose_algorithm_window eaw = w.ea->eaw[i];
     struct windows_state          *ws  = eaw.data;
 
-    cairo_draw_window (cd, ws->sb->data, ws->sb->width, ws->sb->height,
+    cairo_draw_window (w.cd, ws->sb->data, ws->sb->width, ws->sb->height,
                        ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
                        eaw.focused);
   }
@@ -139,7 +139,7 @@ int main (void) {
       break;
   }
 
-  cairo_draw_destroy (cd);
+  cairo_draw_destroy (w.cd);
 
   xdg_shell_destroy (w.xs);
 
@@ -160,4 +160,5 @@ int main (void) {
   free (w.xs);
   free (w.ea->eaw);
   free (w.ea);
+  free (w.cd);
 }
