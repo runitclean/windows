@@ -27,7 +27,7 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 int main (void) {
-  struct windows w = {0};
+  struct windows w;
 
   w.tl = calloc (1, sizeof (*w.tl));
   w.ic = calloc (1, sizeof (*w.ic));
@@ -44,8 +44,8 @@ int main (void) {
   toplevel_list_init (w.tl);
   wl_display_roundtrip (w.display);
 
-  struct toplevel_list_object *tlo = {0};
-  struct image_copy_frame     *icf = {0};
+  struct toplevel_list_object *tlo;
+  struct image_copy_frame     *icf;
 
   wl_list_init (&w.windows);
 
@@ -68,8 +68,7 @@ int main (void) {
     }
 
     ws->sb = shm_buffer_init (w.shm, icf->shm_format, icf->width, icf->height,
-                              icf->width *
-                                  4); // TODO: use cairo_format_stride_for_width
+                              icf->width * 4);
 
     image_copy_init (icf, ws->sb->buffer);
 
@@ -83,6 +82,7 @@ int main (void) {
     ws->error = icf->stopped || icf->failed;
 
     wl_list_insert (&w.windows, &ws->link);
+
     w.ea->window_count++;
 
     image_copy_destroy (icf);
@@ -95,11 +95,10 @@ int main (void) {
   while (!w.xs->configure)
     wl_display_roundtrip (w.display);
 
+  expose_algorithm_init (w.ea);
+
   struct windows_state *ws, *tmp;
-
-  w.ea->eaw = calloc (w.ea->window_count, sizeof (*w.ea->eaw));
-
-  int32_t i = 0;
+  int32_t               i = 0;
 
   wl_list_for_each (ws, &w.windows, link) {
     struct expose_algorithm_window *eaw = &w.ea->eaw[i];
@@ -115,7 +114,7 @@ int main (void) {
   w.ea->display_height =
       1440 / 1.4; // w.xs->height * w.xs->preferred_buffer_scale;
 
-  expose_algorithm_init (w.ea);
+  expose_algorithm_decide (w.ea);
 
   struct shm_buffer *sb =
       shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
@@ -141,6 +140,8 @@ int main (void) {
 
   cairo_draw_destroy (w.cd);
 
+  expose_algorithm_destroy (w.ea);
+
   xdg_shell_destroy (w.xs);
 
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
@@ -158,7 +159,6 @@ int main (void) {
   free (w.tl);
   free (w.ic);
   free (w.xs);
-  free (w.ea->eaw);
   free (w.ea);
   free (w.cd);
 }
