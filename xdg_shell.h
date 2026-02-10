@@ -11,8 +11,7 @@ struct xdg_shell {
   struct xdg_surface  *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
 
-  bool    configure, close;
-  int32_t width, height, preferred_buffer_scale;
+  bool configure, close;
 };
 
 void xdg_shell_registry_global (void *data, struct wl_registry *registry,
