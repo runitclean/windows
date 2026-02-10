@@ -2,6 +2,8 @@
 
 #include "global.h"
 
+#define window_margin 100
+
 struct expose_algorithm {
   int32_t  display_width, display_height;
   uint32_t window_count;

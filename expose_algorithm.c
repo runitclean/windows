@@ -3,9 +3,22 @@
 static void expose_algorithm_phantom (struct expose_algorithm_window *eaw,
                                       uint32_t window_count) {
   for (uint32_t i = 0; i < window_count; i++) {
-    eaw[i].phantom_width  = eaw[i].width + 30;
-    eaw[i].phantom_height = eaw[i].height + 30;
+    eaw[i].phantom_width  = eaw[i].width + window_margin;
+    eaw[i].phantom_height = eaw[i].height + window_margin;
   }
+}
+
+static int32_t expose_algorithm_compare (const void *a, const void *b) {
+  struct expose_algorithm_window *w1 = (struct expose_algorithm_window *) a;
+  struct expose_algorithm_window *w2 = (struct expose_algorithm_window *) b;
+
+  if (w1->phantom_height != w2->phantom_height)
+    return w2->phantom_height - w1->phantom_height;
+
+  if (w1->phantom_width != w2->phantom_width)
+    return w2->phantom_width - w1->phantom_width;
+
+  return (int32_t) w2->node - (int32_t) w1->node;
 }
 
 static int32_t expose_algorithm_nfdh (int32_t shelf_width,
@@ -30,19 +43,6 @@ static int32_t expose_algorithm_nfdh (int32_t shelf_width,
   }
 
   return current_y + current_shelf_height;
-}
-
-static int32_t expose_algorithm_compare (const void *a, const void *b) {
-  struct expose_algorithm_window *w1 = (struct expose_algorithm_window *) a;
-  struct expose_algorithm_window *w2 = (struct expose_algorithm_window *) b;
-
-  if (w1->height != w2->height)
-    return w2->height - w1->height;
-
-  if (w1->width != w2->width)
-    return w2->width - w1->width;
-
-  return (int32_t) w2->node - (int32_t) w1->node;
 }
 
 static struct expose_algorithm_shelf
@@ -118,33 +118,28 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
 
 static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
                                    struct expose_algorithm      *ea) {
-  float width_ratio   = (float) ea->display_width / (float) eas.width;
-  float height_ratio  = (float) ea->display_height / (float) eas.height;
-  float scale_factor  = width_ratio < height_ratio ? width_ratio : height_ratio;
-  scale_factor       *= 0.9;
-
   int32_t  strip_width, strip_height, strip_baseline;
   uint32_t strip_index;
   strip_width = strip_height = strip_baseline = strip_index = 0;
 
   for (uint32_t i = 0; i < ea->window_count; i++) {
-    struct expose_algorithm_window eaw = ea->eaw[i];
+    struct expose_algorithm_window *eaw = &ea->eaw[i];
 
-    if (eaw.y == strip_baseline) {
-      if (eaw.x + eaw.phantom_width > strip_width)
-        strip_width = eaw.x + eaw.phantom_width;
+    if (eaw->y == strip_baseline) {
+      if (eaw->x + eaw->phantom_width > strip_width)
+        strip_width = eaw->x + eaw->phantom_width;
 
-      if (eaw.phantom_height > strip_height)
-        strip_height = eaw.phantom_height;
+      if (eaw->phantom_height > strip_height)
+        strip_height = eaw->phantom_height;
     } else {
       for (uint32_t j = strip_index; j < i; j++) {
         ea->eaw[j].x += (eas.width - strip_width) / 2;
         ea->eaw[j].y += (strip_height - ea->eaw[j].phantom_height) / 2;
       }
 
-      strip_width    = eaw.x + eaw.phantom_width;
-      strip_height   = eaw.phantom_height;
-      strip_baseline = eaw.y;
+      strip_width    = eaw->x + eaw->phantom_width;
+      strip_height   = eaw->phantom_height;
+      strip_baseline = eaw->y;
       strip_index    = i;
     }
 
@@ -156,16 +151,21 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
     }
   }
 
+  float width_ratio  = (float) ea->display_width / (float) eas.width;
+  float height_ratio = (float) ea->display_height / (float) eas.height;
+  float scale_factor = width_ratio < height_ratio ? width_ratio : height_ratio;
+
   for (uint32_t i = 0; i < ea->window_count; i++) {
-    struct expose_algorithm_window eaw = ea->eaw[i];
+    struct expose_algorithm_window *eaw = &ea->eaw[i];
 
-    eaw.scale_factor = scale_factor;
+    eaw->scale_factor = scale_factor;
 
-    eaw.x += 15;
-    eaw.x *= eaw.scale_factor;
-
-    eaw.y += 15;
-    eaw.y *= eaw.scale_factor;
+    eaw->x += window_margin / 2;
+    eaw->x *= scale_factor;
+    eaw->x += (ea->display_width - eas.width * scale_factor) / 2;
+    eaw->y += window_margin / 2;
+    eaw->y *= scale_factor;
+    eaw->y += (ea->display_height - eas.height * scale_factor) / 2;
   }
 }
 
