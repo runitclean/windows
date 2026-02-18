@@ -18,7 +18,7 @@ struct expose_algorithm_shelf {
 struct expose_algorithm_window {
   bool     focused;
   int32_t  width, height, phantom_width, phantom_height, x, y;
-  uint32_t node;
+  uint32_t node, left, right, up, down;
   float    scale_factor;
 
   void *data;

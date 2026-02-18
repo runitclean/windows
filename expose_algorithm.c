@@ -116,11 +116,44 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
   return eas;
 }
 
+static void expose_algorithm_link (struct expose_algorithm_window *eaw,
+                                   uint32_t upper_start, uint32_t upper_end,
+                                   uint32_t lower_start, uint32_t lower_end) {
+  for (uint32_t i = upper_start; i < upper_end; i++) {
+    struct expose_algorithm_window *a = &eaw[i];
+
+    int32_t  best_overlap = INT32_MIN;
+    uint32_t best_j       = i;
+
+    for (uint32_t j = lower_start; j < lower_end; j++) {
+      struct expose_algorithm_window *b = &eaw[j];
+
+      int32_t overlap;
+
+      if (a->x + a->phantom_width < b->x + b->phantom_width)
+        overlap = a->x + a->phantom_width - b->x;
+      else
+        overlap = b->x + b->phantom_width - a->x;
+
+      if (overlap > best_overlap) {
+        best_overlap = overlap;
+        best_j       = j;
+      }
+    }
+
+    a->down        = best_j;
+    eaw[best_j].up = i;
+  }
+}
+
 static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
                                    struct expose_algorithm      *ea) {
   int32_t  strip_width, strip_height, strip_baseline;
   uint32_t strip_index;
   strip_width = strip_height = strip_baseline = strip_index = 0;
+
+  bool     lower_strip = false;
+  uint32_t upper_start, upper_end;
 
   for (uint32_t i = 0; i < ea->window_count; i++) {
     struct expose_algorithm_window *eaw = &ea->eaw[i];
@@ -135,7 +168,19 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
       for (uint32_t j = strip_index; j < i; j++) {
         ea->eaw[j].x += (eas.width - strip_width) / 2;
         ea->eaw[j].y += (strip_height - ea->eaw[j].phantom_height) / 2;
+
+        ea->eaw[j].left  = j > strip_index ? j - 1 : j;
+        ea->eaw[j].right = j < i - 1 ? j + 1 : j;
+        ea->eaw[j].up    = j;
+        ea->eaw[j].down  = j;
       }
+
+      if (lower_strip)
+        expose_algorithm_link (ea->eaw, upper_start, upper_end, strip_index, i);
+
+      upper_start = strip_index;
+      upper_end   = i;
+      lower_strip = true;
 
       strip_width    = eaw->x + eaw->phantom_width;
       strip_height   = eaw->phantom_height;
@@ -147,7 +192,15 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
       for (uint32_t j = strip_index; j <= i; j++) {
         ea->eaw[j].x += (eas.width - strip_width) / 2;
         ea->eaw[j].y += (strip_height - ea->eaw[j].phantom_height) / 2;
+
+        ea->eaw[j].left  = j > strip_index ? j - 1 : j;
+        ea->eaw[j].right = j < i - 1 ? j + 1 : j;
+        ea->eaw[j].up    = j;
+        ea->eaw[j].down  = j;
       }
+
+      if (lower_strip)
+        expose_algorithm_link (ea->eaw, upper_start, upper_end, strip_index, i);
     }
   }
 
