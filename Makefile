@@ -20,9 +20,11 @@ DEPS := $(SRCS:.c=.d)
 
 CFLAGS += \
 	$(shell pkg-config --cflags wayland-client) \
+	$(shell pkg-config --cflags xkbcommon) \
 	$(shell pkg-config --cflags cairo)
 LDLIBS += \
 	$(shell pkg-config --libs wayland-client) \
+	$(shell pkg-config --libs xkbcommon) \
 	$(shell pkg-config --libs cairo)
 
 xdg-shell-protocol.h: \

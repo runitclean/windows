@@ -12,3 +12,4 @@
 #include <unistd.h>
 #include <wayland-client.h>
 #include <wayland-util.h>
+#include <xkbcommon/xkbcommon.h>

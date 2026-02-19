@@ -6,6 +6,19 @@ struct input_device {
   struct wl_seat     *seat;
   struct wl_pointer  *pointer;
   struct wl_keyboard *keyboard;
+
+  struct xkb_context *context;
+  struct xkb_keymap  *keymap;
+  struct xkb_state   *state;
+
+  int32_t rate, delay;
+
+  void (*escape) (void);
+  void (*left) (void);
+  void (*right) (void);
+  void (*up) (void);
+  void (*down) (void);
+  void (*enter) (void);
 };
 
 void input_device_registry_global (void *data, struct wl_registry *registry,
