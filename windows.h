@@ -4,11 +4,13 @@
 #include "expose_algorithm.h"
 #include "global.h"
 #include "image_copy.h"
+#include "input_device.h"
 #include "shm_buffer.h"
 #include "toplevel_list.h"
 #include "xdg_shell.h"
 
 struct windows {
+  struct input_device     *id;
   struct toplevel_list    *tl;
   struct image_copy       *ic;
   struct xdg_shell        *xs;

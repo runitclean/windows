@@ -5,6 +5,7 @@ static void registry_global (void *data, struct wl_registry *registry,
                              uint32_t version) {
   struct windows *w = data;
 
+  input_device_registry_global (w->id, registry, name, interface, version);
   toplevel_list_registry_global (w->tl, registry, name, interface, version);
   image_copy_registry_global (w->ic, registry, name, interface, version);
   xdg_shell_registry_global (w->xs, registry, name, interface, version);
@@ -15,6 +16,7 @@ static void registry_global_remove (void *data, struct wl_registry *registry,
                                     uint32_t name) {
   struct windows *w = data;
 
+  input_device_registry_global_remove (w->id, registry, name);
   toplevel_list_registry_global_remove (w->tl, registry, name);
   image_copy_registry_global_remove (w->ic, registry, name);
   xdg_shell_registry_global_remove (w->xs, registry, name);
@@ -70,6 +72,7 @@ int32_t main (int32_t argc, char **argv) {
 
   struct windows w;
 
+  w.id = calloc (1, sizeof (*w.id));
   w.tl = calloc (1, sizeof (*w.tl));
   w.ic = calloc (1, sizeof (*w.ic));
   w.xs = calloc (1, sizeof (*w.xs));
@@ -82,7 +85,9 @@ int32_t main (int32_t argc, char **argv) {
   wl_registry_add_listener (w.registry, &registry_listener, &w);
   wl_display_roundtrip (w.display);
 
+  input_device_init (w.id);
   toplevel_list_init (w.tl);
+
   wl_display_roundtrip (w.display);
 
   struct toplevel_list_object *tlo;
@@ -123,7 +128,6 @@ int32_t main (int32_t argc, char **argv) {
     ws->error = icf->stopped || icf->failed;
 
     wl_list_insert (&w.windows, &ws->link);
-
     w.ea->window_count++;
 
     image_copy_destroy (icf);
@@ -178,10 +182,9 @@ int32_t main (int32_t argc, char **argv) {
   }
 
   cairo_draw_destroy (w.cd);
-
   expose_algorithm_destroy (w.ea);
-
   xdg_shell_destroy (w.xs);
+  input_device_destroy (w.id);
 
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
@@ -195,6 +198,7 @@ int32_t main (int32_t argc, char **argv) {
     free (ws);
   }
 
+  free (w.id);
   free (w.tl);
   free (w.ic);
   free (w.xs);
