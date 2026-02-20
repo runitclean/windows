@@ -11,7 +11,8 @@ struct input_device {
   struct xkb_keymap  *keymap;
   struct xkb_state   *state;
 
-  int32_t rate, delay;
+  int32_t       repeat_timer, repeat_rate, repeat_delay;
+  xkb_keycode_t repeat_key;
 
   void (*escape) (void);
   void (*left) (void);
@@ -30,3 +31,5 @@ void input_device_registry_global_remove (void               *data,
 
 void input_device_init (struct input_device *id);
 void input_device_destroy (struct input_device *id);
+
+void input_device_dispatch (struct input_device *id);

@@ -82,36 +82,8 @@ static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
   close (fd);
 }
 
-static void keyboard_listener_enter (void *data, struct wl_keyboard *keyboard,
-                                     uint32_t           serial,
-                                     struct wl_surface *surface,
-                                     struct wl_array   *keys) {}
-
-static void keyboard_listener_leave (void *data, struct wl_keyboard *keyboard,
-                                     uint32_t           serial,
-                                     struct wl_surface *surface) {}
-
-static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
-                                   uint32_t serial, uint32_t time, uint32_t key,
-                                   uint32_t state) {
-  struct input_device *id = data;
-
-  xkb_keycode_t keycode = key + 8;
-
-  switch (state) {
-  case WL_KEYBOARD_KEY_STATE_PRESSED:
-    xkb_state_update_key (id->state, keycode, XKB_KEY_DOWN);
-    break;
-  case WL_KEYBOARD_KEY_STATE_RELEASED:
-    xkb_state_update_key (id->state, keycode, XKB_KEY_UP);
-    break;
-  case WL_KEYBOARD_KEY_STATE_REPEATED:
-    // ``repeat'' pseudo-state available only since version 10
-    if (!xkb_keymap_key_repeats (id->keymap, keycode))
-      return;
-    break;
-  }
-
+static void input_device_keyboard_dispatch (struct input_device *id,
+                                            xkb_keycode_t        keycode) {
   xkb_keysym_t keysym = xkb_state_key_get_one_sym (id->state, keycode);
 
   switch (keysym) {
@@ -142,6 +114,67 @@ static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
   }
 }
 
+static void keyboard_listener_enter (void *data, struct wl_keyboard *keyboard,
+                                     uint32_t           serial,
+                                     struct wl_surface *surface,
+                                     struct wl_array   *keys) {}
+
+static void keyboard_listener_leave (void *data, struct wl_keyboard *keyboard,
+                                     uint32_t           serial,
+                                     struct wl_surface *surface) {}
+
+static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
+                                   uint32_t serial, uint32_t time, uint32_t key,
+                                   uint32_t state) {
+  struct input_device *id = data;
+
+  xkb_keycode_t keycode = key + 8;
+
+  switch (state) {
+  case WL_KEYBOARD_KEY_STATE_PRESSED:
+    xkb_state_update_key (id->state, keycode, XKB_KEY_DOWN);
+    input_device_keyboard_dispatch (id, keycode);
+    break;
+  case WL_KEYBOARD_KEY_STATE_RELEASED:
+    xkb_state_update_key (id->state, keycode, XKB_KEY_UP);
+    break;
+  case WL_KEYBOARD_KEY_STATE_REPEATED:
+    // ``repeat'' pseudo-state available only since version 10
+    if (!xkb_keymap_key_repeats (id->keymap, keycode))
+      return;
+    input_device_keyboard_dispatch (id, keycode);
+    break;
+  }
+
+  if (state == WL_KEYBOARD_KEY_STATE_PRESSED && id->repeat_rate > 0 &&
+      xkb_keymap_key_repeats (id->keymap, keycode)) {
+    struct itimerspec timer = {
+        .it_value =
+            {
+                .tv_sec  = id->repeat_delay / (int32_t) 1e3,
+                .tv_nsec = (id->repeat_delay % (int32_t) 1e3) * (int32_t) 1e6,
+            },
+        .it_interval =
+            {
+                .tv_sec  = 0,
+                .tv_nsec = (int32_t) 1e9 / id->repeat_rate,
+            },
+    };
+
+    timerfd_settime (id->repeat_timer, 0, &timer, NULL);
+
+    id->repeat_key = keycode;
+  }
+
+  if (state == WL_KEYBOARD_KEY_STATE_RELEASED && keycode == id->repeat_key) {
+    struct itimerspec timer = {0};
+
+    timerfd_settime (id->repeat_timer, 0, &timer, NULL);
+
+    id->repeat_key = 0;
+  }
+}
+
 static void keyboard_listener_modifiers (void               *data,
                                          struct wl_keyboard *keyboard,
                                          uint32_t            serial,
@@ -157,8 +190,8 @@ static void keyboard_listener_repeat_info (void               *data,
                                            struct wl_keyboard *keyboard,
                                            int32_t rate, int32_t delay) {
   struct input_device *id = data;
-  id->rate                = rate;
-  id->delay               = delay;
+  id->repeat_rate         = rate;
+  id->repeat_delay        = delay;
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
@@ -221,6 +254,9 @@ void input_device_init (struct input_device *id) {
   wl_seat_add_listener (id->seat, &seat_listener, id);
 
   id->context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
+
+  id->repeat_timer = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
+  id->repeat_key   = 0;
 }
 
 void input_device_destroy (struct input_device *id) {
@@ -231,4 +267,17 @@ void input_device_destroy (struct input_device *id) {
     wl_keyboard_release (id->keyboard);
 
   xkb_context_unref (id->context);
+
+  close (id->repeat_timer);
+}
+
+void input_device_dispatch (struct input_device *id) {
+  uint64_t expirations;
+
+  if (!id->repeat_key || read (id->repeat_timer, &expirations,
+                               sizeof (expirations)) != sizeof (expirations))
+    return;
+
+  for (uint64_t i = 0; i < expirations; i++)
+    input_device_keyboard_dispatch (id, id->repeat_key);
 }
