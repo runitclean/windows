@@ -176,9 +176,28 @@ int32_t main (int32_t argc, char **argv) {
 
   xdg_shell_present (w.xs, sb->buffer);
 
+  struct pollfd fds[2] = {
+      {
+          .fd     = wl_display_get_fd (w.display),
+          .events = POLLIN,
+      },
+      {
+          .fd     = w.id->repeat_timer,
+          .events = POLLIN,
+      },
+  };
+
   while (!w.xs->close) {
-    if (wl_display_dispatch (w.display) == -1)
+    wl_display_flush (w.display);
+
+    if (poll (fds, 2, -1) == -1)
       break;
+
+    if (fds[0].revents & POLLIN)
+      wl_display_dispatch (w.display);
+
+    if (fds[1].revents & POLLIN)
+      input_device_dispatch (w.id);
   }
 
   cairo_draw_destroy (w.cd);
