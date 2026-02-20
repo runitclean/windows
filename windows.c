@@ -77,6 +77,7 @@ int32_t main (int32_t argc, char **argv) {
   w.ic = calloc (1, sizeof (*w.ic));
   w.xs = calloc (1, sizeof (*w.xs));
   w.ea = calloc (1, sizeof (*w.ea));
+  w.sb = calloc (1, sizeof (*w.sb));
   w.cd = calloc (1, sizeof (*w.cd));
 
   w.display  = wl_display_connect (NULL);
@@ -113,9 +114,10 @@ int32_t main (int32_t argc, char **argv) {
       wl_display_roundtrip (w.display);
     }
 
-    ws->sb = shm_buffer_init (w.shm, icf->shm_format, icf->width, icf->height,
-                              icf->width * 4);
+    ws->sb = calloc (1, sizeof (*ws->sb));
 
+    shm_buffer_init (ws->sb, w.shm, icf->shm_format, icf->width, icf->height,
+                     icf->width * 4);
     image_copy_init (icf, ws->sb->buffer);
 
     while (!icf->ready) {
@@ -159,11 +161,10 @@ int32_t main (int32_t argc, char **argv) {
 
   expose_algorithm_decide (w.ea);
 
-  struct shm_buffer *sb =
-    shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
-                     w.ea->display_height, w.ea->display_width * 4);
+  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
+                   w.ea->display_height, w.ea->display_width * 4);
 
-  cairo_draw_init (w.cd, sb->data, sb->width, sb->height, sb->stride);
+  cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
   for (uint32_t i = 0; i < w.ea->window_count; i++) {
     struct expose_algorithm_window eaw = w.ea->eaw[i];
@@ -174,7 +175,7 @@ int32_t main (int32_t argc, char **argv) {
                        eaw.focused);
   }
 
-  xdg_shell_present (w.xs, sb->buffer);
+  xdg_shell_present (w.xs, w.sb->buffer);
 
   struct pollfd fds[2] = {
     {
@@ -201,7 +202,7 @@ int32_t main (int32_t argc, char **argv) {
   }
 
   cairo_draw_destroy (w.cd);
-  shm_buffer_destroy (sb);
+  shm_buffer_destroy (w.sb);
   expose_algorithm_destroy (w.ea);
   xdg_shell_destroy (w.xs);
   input_device_destroy (w.id);
@@ -209,8 +210,9 @@ int32_t main (int32_t argc, char **argv) {
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
 
-    shm_buffer_destory (ws->sb);
+    shm_buffer_destroy (ws->sb);
 
+    free (ws->sb);
     free (ws->identifier);
     free (ws->title);
     free (ws->app_id);
@@ -223,5 +225,6 @@ int32_t main (int32_t argc, char **argv) {
   free (w.ic);
   free (w.xs);
   free (w.ea);
+  free (w.sb);
   free (w.cd);
 }
