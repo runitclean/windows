@@ -24,5 +24,6 @@ AlignEscapedNewlines: Right
 AlignOperands: AlignAfterOperator
 AlignTrailingComments:
   Kind: Always
+ContinuationIndentWidth: 2
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: Always

@@ -7,7 +7,7 @@
 
 struct image_copy {
   struct ext_foreign_toplevel_image_capture_source_manager_v1
-      *foreign_toplevel_image_capture_source_manager;
+    *foreign_toplevel_image_capture_source_manager;
 
   struct ext_image_copy_capture_manager_v1 *image_copy_capture_manager;
 };

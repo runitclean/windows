@@ -24,8 +24,8 @@ static void registry_global_remove (void *data, struct wl_registry *registry,
 }
 
 static const struct wl_registry_listener registry_listener = {
-    .global        = registry_global,
-    .global_remove = registry_global_remove,
+  .global        = registry_global,
+  .global_remove = registry_global_remove,
 };
 
 static void usage (FILE *out, const char *name) {
@@ -160,8 +160,8 @@ int32_t main (int32_t argc, char **argv) {
   expose_algorithm_decide (w.ea);
 
   struct shm_buffer *sb =
-      shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
-                       w.ea->display_height, w.ea->display_width * 4);
+    shm_buffer_init (w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
+                     w.ea->display_height, w.ea->display_width * 4);
 
   cairo_draw_init (w.cd, sb->data, sb->width, sb->height, sb->stride);
 
@@ -177,14 +177,14 @@ int32_t main (int32_t argc, char **argv) {
   xdg_shell_present (w.xs, sb->buffer);
 
   struct pollfd fds[2] = {
-      {
-          .fd     = wl_display_get_fd (w.display),
-          .events = POLLIN,
-      },
-      {
-          .fd     = w.id->repeat_timer,
-          .events = POLLIN,
-      },
+    {
+      .fd     = wl_display_get_fd (w.display),
+      .events = POLLIN,
+    },
+    {
+      .fd     = w.id->repeat_timer,
+      .events = POLLIN,
+    },
   };
 
   while (!w.xs->close) {

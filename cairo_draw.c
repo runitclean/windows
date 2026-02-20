@@ -19,7 +19,7 @@ void cairo_draw_window (struct cairo_draw *cd, void *data, int32_t width,
                         int32_t height, int32_t stride, int32_t x, int32_t y,
                         float scale_factor, bool focused) {
   cairo_surface_t *surface = cairo_image_surface_create_for_data (
-      data, CAIRO_FORMAT_ARGB32, width, height, stride);
+    data, CAIRO_FORMAT_ARGB32, width, height, stride);
 
   cairo_save (cd->context);
 

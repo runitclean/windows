@@ -42,21 +42,20 @@ static void pointer_listener_axis_value120 (void              *data,
                                             uint32_t axis, int32_t value120) {}
 
 static void pointer_listener_axis_relative_direction (
-    void *data, struct wl_pointer *pointer, uint32_t axis, uint32_t direction) {
-}
+  void *data, struct wl_pointer *pointer, uint32_t axis, uint32_t direction) {}
 
 static const struct wl_pointer_listener pointer_listener = {
-    .enter                   = pointer_listener_enter,
-    .leave                   = pointer_listener_leave,
-    .motion                  = pointer_listener_motion,
-    .button                  = pointer_listener_button,
-    .axis                    = pointer_listener_axis,
-    .frame                   = pointer_listener_frame,
-    .axis_source             = pointer_listener_axis_source,
-    .axis_stop               = pointer_listener_axis_stop,
-    .axis_discrete           = pointer_listener_axis_discrete,
-    .axis_value120           = pointer_listener_axis_value120,
-    .axis_relative_direction = pointer_listener_axis_relative_direction,
+  .enter                   = pointer_listener_enter,
+  .leave                   = pointer_listener_leave,
+  .motion                  = pointer_listener_motion,
+  .button                  = pointer_listener_button,
+  .axis                    = pointer_listener_axis,
+  .frame                   = pointer_listener_frame,
+  .axis_source             = pointer_listener_axis_source,
+  .axis_stop               = pointer_listener_axis_stop,
+  .axis_discrete           = pointer_listener_axis_discrete,
+  .axis_value120           = pointer_listener_axis_value120,
+  .axis_relative_direction = pointer_listener_axis_relative_direction,
 };
 
 static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
@@ -75,7 +74,7 @@ static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
   char *shm = mmap (NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 
   id->keymap = xkb_keymap_new_from_string (
-      id->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    id->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
   id->state = xkb_state_new (id->keymap);
 
   munmap (shm, size);
@@ -149,16 +148,16 @@ static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
   if (state == WL_KEYBOARD_KEY_STATE_PRESSED && id->repeat_rate > 0 &&
       xkb_keymap_key_repeats (id->keymap, keycode)) {
     struct itimerspec timer = {
-        .it_value =
-            {
-                .tv_sec  = id->repeat_delay / (int32_t) 1e3,
-                .tv_nsec = (id->repeat_delay % (int32_t) 1e3) * (int32_t) 1e6,
-            },
-        .it_interval =
-            {
-                .tv_sec  = 0,
-                .tv_nsec = (int32_t) 1e9 / id->repeat_rate,
-            },
+      .it_value =
+        {
+          .tv_sec  = id->repeat_delay / (int32_t) 1e3,
+          .tv_nsec = (id->repeat_delay % (int32_t) 1e3) * (int32_t) 1e6,
+        },
+      .it_interval =
+        {
+          .tv_sec  = 0,
+          .tv_nsec = (int32_t) 1e9 / id->repeat_rate,
+        },
     };
 
     timerfd_settime (id->repeat_timer, 0, &timer, NULL);
@@ -195,12 +194,12 @@ static void keyboard_listener_repeat_info (void               *data,
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
-    .keymap      = keyboard_listener_keymap,
-    .enter       = keyboard_listener_enter,
-    .leave       = keyboard_listener_leave,
-    .key         = keyboard_listener_key,
-    .modifiers   = keyboard_listener_modifiers,
-    .repeat_info = keyboard_listener_repeat_info,
+  .keymap      = keyboard_listener_keymap,
+  .enter       = keyboard_listener_enter,
+  .leave       = keyboard_listener_leave,
+  .key         = keyboard_listener_key,
+  .modifiers   = keyboard_listener_modifiers,
+  .repeat_info = keyboard_listener_repeat_info,
 };
 
 static void seat_listener_capabilities (void *data, struct wl_seat *seat,
@@ -233,8 +232,8 @@ static void seat_listener_name (void *data, struct wl_seat *seat,
                                 const char *name) {}
 
 static const struct wl_seat_listener seat_listener = {
-    .capabilities = seat_listener_capabilities,
-    .name         = seat_listener_name,
+  .capabilities = seat_listener_capabilities,
+  .name         = seat_listener_name,
 };
 
 void input_device_registry_global (void *data, struct wl_registry *registry,

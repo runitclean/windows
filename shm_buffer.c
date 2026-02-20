@@ -73,7 +73,7 @@ struct shm_buffer *shm_buffer_init (struct wl_shm     *shm,
 
   struct wl_shm_pool *pool = wl_shm_create_pool (shm, fd, size);
   struct wl_buffer   *buffer =
-      wl_shm_pool_create_buffer (pool, 0, width, height, stride, format);
+    wl_shm_pool_create_buffer (pool, 0, width, height, stride, format);
 
   wl_shm_pool_destroy (pool);
   close (fd);

@@ -6,7 +6,7 @@ static void xdg_wm_base_ping (void *data, struct xdg_wm_base *wm_base,
 }
 
 static const struct xdg_wm_base_listener xdg_wm_base_listener = {
-    .ping = xdg_wm_base_ping,
+  .ping = xdg_wm_base_ping,
 };
 
 static void xdg_surface_configure (void *data, struct xdg_surface *surface,
@@ -18,7 +18,7 @@ static void xdg_surface_configure (void *data, struct xdg_surface *surface,
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
-    .configure = xdg_surface_configure,
+  .configure = xdg_surface_configure,
 };
 
 static void xdg_toplevel_configure (void *data, struct xdg_toplevel *toplevel,
@@ -31,8 +31,8 @@ static void xdg_toplevel_close (void *data, struct xdg_toplevel *toplevel) {
 }
 
 static const struct xdg_toplevel_listener xdg_toplevel_listener = {
-    .configure = xdg_toplevel_configure,
-    .close     = xdg_toplevel_close,
+  .configure = xdg_toplevel_configure,
+  .close     = xdg_toplevel_close,
 };
 
 void xdg_shell_registry_global (void *data, struct wl_registry *registry,
@@ -42,10 +42,10 @@ void xdg_shell_registry_global (void *data, struct wl_registry *registry,
 
   if (strcmp (interface, wl_compositor_interface.name) == 0)
     shell->wl_compositor =
-        wl_registry_bind (registry, name, &wl_compositor_interface, 4);
+      wl_registry_bind (registry, name, &wl_compositor_interface, 4);
   else if (strcmp (interface, xdg_wm_base_interface.name) == 0)
     shell->xdg_wm_base =
-        wl_registry_bind (registry, name, &xdg_wm_base_interface, 3);
+      wl_registry_bind (registry, name, &xdg_wm_base_interface, 3);
 }
 
 void xdg_shell_registry_global_remove (void *data, struct wl_registry *registry,
@@ -58,7 +58,7 @@ void xdg_shell_init (struct xdg_shell *shell, const char *title,
   shell->wl_surface = wl_compositor_create_surface (shell->wl_compositor);
 
   shell->xdg_surface =
-      xdg_wm_base_get_xdg_surface (shell->xdg_wm_base, shell->wl_surface);
+    xdg_wm_base_get_xdg_surface (shell->xdg_wm_base, shell->wl_surface);
   xdg_surface_add_listener (shell->xdg_surface, &xdg_surface_listener, shell);
 
   shell->xdg_toplevel = xdg_surface_get_toplevel (shell->xdg_surface);
