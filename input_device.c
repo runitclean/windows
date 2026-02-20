@@ -161,7 +161,6 @@ static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
     };
 
     timerfd_settime (id->repeat_timer, 0, &timer, NULL);
-
     id->repeat_key = keycode;
   }
 
@@ -169,7 +168,6 @@ static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
     struct itimerspec timer = {0};
 
     timerfd_settime (id->repeat_timer, 0, &timer, NULL);
-
     id->repeat_key = 0;
   }
 }
