@@ -201,6 +201,7 @@ int32_t main (int32_t argc, char **argv) {
   }
 
   cairo_draw_destroy (w.cd);
+  shm_buffer_destroy (sb);
   expose_algorithm_destroy (w.ea);
   xdg_shell_destroy (w.xs);
   input_device_destroy (w.id);
