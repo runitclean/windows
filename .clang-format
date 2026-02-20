@@ -1,5 +1,5 @@
 AlignAfterOpenBracket: Align
-AlignArrayOfStructures: Left
+AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
   Enabled: true
   AcrossComments: false
@@ -26,5 +26,3 @@ AlignTrailingComments:
   Kind: Always
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: Always
-ObjCSpaceAfterProperty: true
-ObjCSpaceBeforeProtocolList: true
