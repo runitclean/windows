@@ -31,12 +31,19 @@ void cairo_draw_window (struct cairo_draw *cd, void *data, int32_t width,
 
   if (focused) {
     cairo_set_source_rgba (cd->context, 1, 1, 1, 1);
-    cairo_set_line_width (cd->context, 2 / scale_factor);
-    cairo_rectangle (cd->context, -2 / scale_factor, -2 / scale_factor,
-                     width + 4 / scale_factor, height + 4 / scale_factor);
+    cairo_set_line_width (cd->context, 1 / scale_factor);
+    cairo_rectangle (cd->context, -1 / scale_factor, -1 / scale_factor,
+                     width + 2 / scale_factor, height + 2 / scale_factor);
     cairo_stroke (cd->context);
   }
 
   cairo_restore (cd->context);
   cairo_surface_destroy (surface);
+}
+
+void cairo_draw_clear (struct cairo_draw *cd) {
+  cairo_save (cd->context);
+  cairo_set_operator (cd->context, CAIRO_OPERATOR_CLEAR);
+  cairo_paint (cd->context);
+  cairo_restore (cd->context);
 }
