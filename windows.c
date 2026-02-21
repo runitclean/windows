@@ -41,6 +41,8 @@ static void callback_done (void *data, struct wl_callback *callback,
   wl_callback_add_listener (callback, &callback_listener, w);
 
   if (w->render) {
+    cairo_draw_clear (w->cd);
+
     for (uint32_t i = 0; i < w->ea->window_count; i++) {
       struct expose_algorithm_window eaw = w->ea->eaw[i];
       struct windows_state          *ws  = eaw.data;
@@ -70,6 +72,91 @@ static void usage (FILE *out, const char *name) {
            "\n"
            "Copyright (C) 2026 Jing Huang.\n",
            name);
+}
+
+static void escape (void *data) {
+  struct windows *w = data;
+  w->xs->close      = true;
+}
+
+static void left (void *data) {
+  struct windows *w    = data;
+  bool            find = false;
+
+  for (uint32_t i = 0; i < w->ea->window_count; i++)
+    if (w->ea->eaw[i].focused) {
+      find                                   = true;
+      w->ea->eaw[i].focused                  = false;
+      w->ea->eaw[w->ea->eaw[i].left].focused = true;
+    }
+
+  if (!find)
+    w->ea->eaw[0].focused = true;
+
+  w->render = true;
+}
+
+static void right (void *data) {
+  struct windows *w    = data;
+  bool            find = false;
+
+  for (uint32_t i = 0; i < w->ea->window_count; i++)
+    if (w->ea->eaw[i].focused) {
+      find                                    = true;
+      w->ea->eaw[i].focused                   = false;
+      w->ea->eaw[w->ea->eaw[i].right].focused = true;
+    }
+
+  if (!find)
+    w->ea->eaw[0].focused = true;
+
+  w->render = true;
+}
+
+static void up (void *data) {
+  struct windows *w    = data;
+  bool            find = false;
+
+  for (uint32_t i = 0; i < w->ea->window_count; i++)
+    if (w->ea->eaw[i].focused) {
+      find                                 = true;
+      w->ea->eaw[i].focused                = false;
+      w->ea->eaw[w->ea->eaw[i].up].focused = true;
+    }
+
+  if (!find)
+    w->ea->eaw[0].focused = true;
+
+  w->render = true;
+}
+
+static void down (void *data) {
+  struct windows *w    = data;
+  bool            find = false;
+
+  for (uint32_t i = 0; i < w->ea->window_count; i++)
+    if (w->ea->eaw[i].focused) {
+      find                                   = true;
+      w->ea->eaw[i].focused                  = false;
+      w->ea->eaw[w->ea->eaw[i].down].focused = true;
+    }
+
+  if (!find)
+    w->ea->eaw[0].focused = true;
+
+  w->render = true;
+}
+
+static void enter (void *data) {
+  struct windows *w = data;
+
+  for (uint32_t i = 0; i < w->ea->window_count; i++)
+    if (w->ea->eaw[i].focused) {
+      struct windows_state *ws = w->ea->eaw[i].data;
+      printf ("%s\n", ws->identifier);
+
+      w->xs->close = true;
+    }
 }
 
 int32_t main (int32_t argc, char **argv) {
@@ -122,6 +209,14 @@ int32_t main (int32_t argc, char **argv) {
   toplevel_list_init (w.tl);
 
   wl_display_roundtrip (w.display);
+
+  w.id->data   = &w;
+  w.id->escape = escape;
+  w.id->left   = left;
+  w.id->right  = right;
+  w.id->up     = up;
+  w.id->down   = down;
+  w.id->enter  = enter;
 
   struct toplevel_list_object *tlo;
   struct image_copy_frame     *icf;
@@ -195,7 +290,6 @@ int32_t main (int32_t argc, char **argv) {
 
   shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
                    w.ea->display_height, w.ea->display_width * 4);
-
   cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
   struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
