@@ -345,6 +345,8 @@ int32_t main (int32_t argc, char **argv) {
   image_copy_destroy (w.ic);
   input_device_destroy (w.id);
 
+  wl_shm_destroy (w.shm);
+
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
 
