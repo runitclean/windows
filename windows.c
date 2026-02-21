@@ -88,6 +88,7 @@ static void left (void *data) {
       find                                   = true;
       w->ea->eaw[i].focused                  = false;
       w->ea->eaw[w->ea->eaw[i].left].focused = true;
+      break;
     }
 
   if (!find)
@@ -105,6 +106,7 @@ static void right (void *data) {
       find                                    = true;
       w->ea->eaw[i].focused                   = false;
       w->ea->eaw[w->ea->eaw[i].right].focused = true;
+      break;
     }
 
   if (!find)
@@ -122,6 +124,7 @@ static void up (void *data) {
       find                                 = true;
       w->ea->eaw[i].focused                = false;
       w->ea->eaw[w->ea->eaw[i].up].focused = true;
+      break;
     }
 
   if (!find)
@@ -139,6 +142,7 @@ static void down (void *data) {
       find                                   = true;
       w->ea->eaw[i].focused                  = false;
       w->ea->eaw[w->ea->eaw[i].down].focused = true;
+      break;
     }
 
   if (!find)
