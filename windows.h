@@ -21,6 +21,7 @@ struct windows {
   struct wl_display  *display;
   struct wl_registry *registry;
   struct wl_shm      *shm;
+  struct wl_callback *callback;
 
   struct wl_list windows;
 

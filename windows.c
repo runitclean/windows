@@ -37,7 +37,7 @@ static void callback_done (void *data, struct wl_callback *callback,
 
   wl_callback_destroy (callback);
 
-  callback = wl_surface_frame (w->xs->wl_surface);
+  w->callback = callback = wl_surface_frame (w->xs->wl_surface);
   wl_callback_add_listener (callback, &callback_listener, w);
 
   if (w->render) {
@@ -358,6 +358,7 @@ int32_t main (int32_t argc, char **argv) {
     free (ws);
   }
 
+  wl_callback_destroy (w.callback);
   wl_registry_destroy (w.registry);
   wl_display_disconnect (w.display);
 
