@@ -119,13 +119,13 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
 static void expose_algorithm_link (struct expose_algorithm_window *eaw,
                                    uint32_t upper_start, uint32_t upper_end,
                                    uint32_t lower_start, uint32_t lower_end) {
-  for (uint32_t i = upper_start; i < upper_end; i++) {
+  for (uint32_t i = upper_start; i <= upper_end; i++) {
     struct expose_algorithm_window *a = &eaw[i];
 
-    int32_t  best_overlap = INT32_MIN;
+    int32_t  best_overlap = 0;
     uint32_t best_j       = i;
 
-    for (uint32_t j = lower_start; j < lower_end; j++) {
+    for (uint32_t j = lower_start; j <= lower_end; j++) {
       struct expose_algorithm_window *b = &eaw[j];
 
       int32_t overlap;
@@ -141,8 +141,32 @@ static void expose_algorithm_link (struct expose_algorithm_window *eaw,
       }
     }
 
-    a->down        = best_j;
-    eaw[best_j].up = i;
+    a->down = best_j;
+  }
+
+  for (uint32_t i = lower_start; i <= lower_end; i++) {
+    struct expose_algorithm_window *a = &eaw[i];
+
+    int32_t  best_overlap = 0;
+    uint32_t best_j       = i;
+
+    for (uint32_t j = upper_start; j <= upper_end; j++) {
+      struct expose_algorithm_window *b = &eaw[j];
+
+      int32_t overlap;
+
+      if (a->x + a->phantom_width < b->x + b->phantom_width)
+        overlap = a->x + a->phantom_width - b->x;
+      else
+        overlap = b->x + b->phantom_width - a->x;
+
+      if (overlap > best_overlap) {
+        best_overlap = overlap;
+        best_j       = j;
+      }
+    }
+
+    a->up = best_j;
   }
 }
 
@@ -179,7 +203,7 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
         expose_algorithm_link (ea->eaw, upper_start, upper_end, strip_index, i);
 
       upper_start = strip_index;
-      upper_end   = i;
+      upper_end   = i - 1;
       lower_strip = true;
 
       strip_width    = eaw->x + eaw->phantom_width;
@@ -194,7 +218,7 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
         ea->eaw[j].y += (strip_height - ea->eaw[j].phantom_height) / 2;
 
         ea->eaw[j].left  = j > strip_index ? j - 1 : j;
-        ea->eaw[j].right = j < i - 1 ? j + 1 : j;
+        ea->eaw[j].right = j < i ? j + 1 : j;
         ea->eaw[j].up    = j;
         ea->eaw[j].down  = j;
       }
