@@ -211,6 +211,7 @@ int32_t main (int32_t argc, char **argv) {
 
   input_device_init (w.id);
   toplevel_list_init (w.tl);
+  image_copy_init (w.ic);
 
   wl_display_roundtrip (w.display);
 
@@ -223,12 +224,12 @@ int32_t main (int32_t argc, char **argv) {
   w.id->enter  = enter;
 
   struct toplevel_list_object *tlo;
-  struct image_copy_frame     *icf;
 
   wl_list_init (&w.windows);
 
   wl_list_for_each (tlo, &w.tl->toplevels, link) {
-    struct windows_state *ws = calloc (1, sizeof (*ws));
+    struct windows_state    *ws  = calloc (1, sizeof (*ws));
+    struct image_copy_frame *icf = calloc (1, sizeof (*icf));
 
     while (!tlo->closed && !tlo->done)
       wl_display_roundtrip (w.display);
@@ -237,7 +238,7 @@ int32_t main (int32_t argc, char **argv) {
     ws->title      = strdup (tlo->title);
     ws->app_id     = strdup (tlo->app_id);
 
-    icf = image_copy_frame_from_toplevel (w.ic, tlo->handle);
+    image_copy_session (w.ic, icf, tlo->handle);
 
     while (!icf->done) {
       if (icf->stopped)
@@ -249,7 +250,8 @@ int32_t main (int32_t argc, char **argv) {
 
     shm_buffer_init (ws->sb, w.shm, icf->shm_format, icf->width, icf->height,
                      icf->width * 4);
-    image_copy_init (icf, ws->sb->buffer);
+
+    image_copy_toplevel (icf, ws->sb->buffer);
 
     while (!icf->ready) {
       if (icf->failed)
@@ -259,11 +261,10 @@ int32_t main (int32_t argc, char **argv) {
 
   error:
     ws->error = icf->stopped || icf->failed;
+    free (icf);
 
     wl_list_insert (&w.windows, &ws->link);
     w.ea->window_count++;
-
-    image_copy_destroy (icf);
   }
 
   toplevel_list_destroy (w.tl);
@@ -341,6 +342,7 @@ int32_t main (int32_t argc, char **argv) {
   shm_buffer_destroy (w.sb);
   expose_algorithm_destroy (w.ea);
   xdg_shell_destroy (w.xs);
+  image_copy_destroy (w.ic);
   input_device_destroy (w.id);
 
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
