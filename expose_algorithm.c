@@ -96,13 +96,11 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
     binary_ratio = (float) binary_shelf_height / (float) binary_shelf_width;
 
     if (binary_ratio > target_ratio) {
-      ratio_max        = binary_ratio;
-      shelf_width_min  = binary_shelf_width;
-      shelf_height_max = binary_shelf_height;
+      ratio_max       = binary_ratio;
+      shelf_width_min = binary_shelf_width;
     } else {
-      ratio_min        = binary_ratio;
-      shelf_width_max  = binary_shelf_width;
-      shelf_height_min = binary_shelf_height;
+      ratio_min       = binary_ratio;
+      shelf_width_max = binary_shelf_width;
     }
   }
 
