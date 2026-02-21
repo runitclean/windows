@@ -78,6 +78,7 @@ void xdg_shell_destroy (struct xdg_shell *shell) {
   xdg_wm_base_destroy (shell->xdg_wm_base);
 
   wl_surface_destroy (shell->wl_surface);
+  wl_compositor_destroy (shell->wl_compositor);
 }
 
 void xdg_shell_present (struct xdg_shell *shell, struct wl_buffer *buffer) {
