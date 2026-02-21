@@ -28,6 +28,38 @@ static const struct wl_registry_listener registry_listener = {
   .global_remove = registry_global_remove,
 };
 
+// forward declaration needed for rescheduling callback
+static const struct wl_callback_listener callback_listener;
+
+static void callback_done (void *data, struct wl_callback *callback,
+                           uint32_t callback_data) {
+  struct windows *w = data;
+
+  wl_callback_destroy (callback);
+
+  callback = wl_surface_frame (w->xs->wl_surface);
+  wl_callback_add_listener (callback, &callback_listener, w);
+
+  if (w->render) {
+    for (uint32_t i = 0; i < w->ea->window_count; i++) {
+      struct expose_algorithm_window eaw = w->ea->eaw[i];
+      struct windows_state          *ws  = eaw.data;
+
+      cairo_draw_window (w->cd, ws->sb->data, ws->sb->width, ws->sb->height,
+                         ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
+                         eaw.focused);
+    }
+  }
+
+  w->render = false;
+
+  xdg_shell_present (w->xs, w->sb->buffer);
+}
+
+static const struct wl_callback_listener callback_listener = {
+  .done = callback_done,
+};
+
 static void usage (FILE *out, const char *name) {
   fprintf (out,
            "Usage: %s [options...]\n"
@@ -166,6 +198,10 @@ int32_t main (int32_t argc, char **argv) {
 
   cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
+  struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
+  wl_callback_add_listener (callback, &callback_listener, &w);
+
+  // submit an initial frame for the frame done callback
   for (uint32_t i = 0; i < w.ea->window_count; i++) {
     struct expose_algorithm_window eaw = w.ea->eaw[i];
     struct windows_state          *ws  = eaw.data;
@@ -174,6 +210,8 @@ int32_t main (int32_t argc, char **argv) {
                        ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
                        eaw.focused);
   }
+
+  w.render = false;
 
   xdg_shell_present (w.xs, w.sb->buffer);
 

@@ -23,6 +23,8 @@ struct windows {
   struct wl_shm      *shm;
 
   struct wl_list windows;
+
+  bool render;
 };
 
 struct windows_state {
