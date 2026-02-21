@@ -263,6 +263,8 @@ void input_device_destroy (struct input_device *id) {
   if (id->keyboard)
     wl_keyboard_release (id->keyboard);
 
+  xkb_state_unref (id->state);
+  xkb_keymap_unref (id->keymap);
   xkb_context_unref (id->context);
 
   close (id->repeat_timer);
