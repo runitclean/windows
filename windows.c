@@ -343,9 +343,6 @@ int32_t main (int32_t argc, char **argv) {
   xdg_shell_destroy (w.xs);
   input_device_destroy (w.id);
 
-  wl_registry_destroy (w.registry);
-  wl_display_disconnect (w.display);
-
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
 
@@ -358,6 +355,9 @@ int32_t main (int32_t argc, char **argv) {
 
     free (ws);
   }
+
+  wl_registry_destroy (w.registry);
+  wl_display_disconnect (w.display);
 
   free (w.id);
   free (w.tl);
