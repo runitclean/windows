@@ -29,9 +29,10 @@ void image_copy_registry_global_remove (void               *data,
                                         struct wl_registry *registry,
                                         uint32_t            name);
 
-struct image_copy_frame *
-image_copy_frame_from_toplevel (struct image_copy                     *ic,
-                                struct ext_foreign_toplevel_handle_v1 *handle);
+void image_copy_init (struct image_copy *ic);
+void image_copy_destroy (struct image_copy *ic);
 
-void image_copy_init (struct image_copy_frame *icf, struct wl_buffer *buffer);
-void image_copy_destroy (struct image_copy_frame *icf);
+void image_copy_session (struct image_copy *ic, struct image_copy_frame *icf,
+                         struct ext_foreign_toplevel_handle_v1 *handle);
+void image_copy_toplevel (struct image_copy_frame *icf,
+                          struct wl_buffer        *buffer);

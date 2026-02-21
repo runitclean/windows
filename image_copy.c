@@ -17,6 +17,9 @@ image_copy_capture_frame_ready (void                                   *data,
                                 struct ext_image_copy_capture_frame_v1 *frame) {
   struct image_copy_frame *icf = data;
   icf->ready                   = true;
+
+  ext_image_copy_capture_frame_v1_destroy (icf->frame);
+  ext_image_copy_capture_session_v1_destroy (icf->session);
 }
 
 static void image_copy_capture_frame_failed (
@@ -91,28 +94,34 @@ void image_copy_registry_global (void *data, struct wl_registry *registry,
                                  uint32_t version) {
   struct image_copy *ic = data;
 
-  if (strcmp (
-        interface,
-        ext_foreign_toplevel_image_capture_source_manager_v1_interface.name) ==
-      0)
+  if (strcmp (interface, ext_image_copy_capture_manager_v1_interface.name) == 0)
+    ic->image_copy_capture_manager = wl_registry_bind (
+      registry, name, &ext_image_copy_capture_manager_v1_interface, 1);
+  else if (strcmp (
+             interface,
+             ext_foreign_toplevel_image_capture_source_manager_v1_interface
+               .name) == 0)
     ic->foreign_toplevel_image_capture_source_manager = wl_registry_bind (
       registry, name,
       &ext_foreign_toplevel_image_capture_source_manager_v1_interface, 1);
-  else if (strcmp (interface,
-                   ext_image_copy_capture_manager_v1_interface.name) == 0)
-    ic->image_copy_capture_manager = wl_registry_bind (
-      registry, name, &ext_image_copy_capture_manager_v1_interface, 1);
 }
 
 void image_copy_registry_global_remove (void               *data,
                                         struct wl_registry *registry,
                                         uint32_t            name) {}
 
-struct image_copy_frame *
-image_copy_frame_from_toplevel (struct image_copy                     *ic,
-                                struct ext_foreign_toplevel_handle_v1 *handle) {
-  struct image_copy_frame *icf = calloc (1, sizeof (*icf));
+void image_copy_init (struct image_copy *ic) {
+  // refer to image_copy_registry_global instead
+}
 
+void image_copy_destroy (struct image_copy *ic) {
+  ext_foreign_toplevel_image_capture_source_manager_v1_destroy (
+    ic->foreign_toplevel_image_capture_source_manager);
+  ext_image_copy_capture_manager_v1_destroy (ic->image_copy_capture_manager);
+}
+
+void image_copy_session (struct image_copy *ic, struct image_copy_frame *icf,
+                         struct ext_foreign_toplevel_handle_v1 *handle) {
   struct ext_image_capture_source_v1 *source =
     ext_foreign_toplevel_image_capture_source_manager_v1_create_source (
       ic->foreign_toplevel_image_capture_source_manager, handle);
@@ -123,22 +132,14 @@ image_copy_frame_from_toplevel (struct image_copy                     *ic,
     icf->session, &image_copy_capture_session_listener, icf);
 
   ext_image_capture_source_v1_destroy (source);
-
-  return icf;
 }
 
-void image_copy_init (struct image_copy_frame *icf, struct wl_buffer *buffer) {
+void image_copy_toplevel (struct image_copy_frame *icf,
+                          struct wl_buffer        *buffer) {
   icf->buffer = buffer;
 
   ext_image_copy_capture_frame_v1_attach_buffer (icf->frame, buffer);
   ext_image_copy_capture_frame_v1_damage_buffer (icf->frame, 0, 0, INT32_MAX,
                                                  INT32_MAX);
   ext_image_copy_capture_frame_v1_capture (icf->frame);
-}
-
-void image_copy_destroy (struct image_copy_frame *icf) {
-  ext_image_copy_capture_frame_v1_destroy (icf->frame);
-  ext_image_copy_capture_session_v1_destroy (icf->session);
-
-  free (icf);
 }
