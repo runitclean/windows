@@ -14,12 +14,14 @@ struct input_device {
   int32_t       repeat_timer, repeat_rate, repeat_delay;
   xkb_keycode_t repeat_key;
 
-  void (*escape) (void);
-  void (*left) (void);
-  void (*right) (void);
-  void (*up) (void);
-  void (*down) (void);
-  void (*enter) (void);
+  void *data;
+
+  void (*escape) (void *);
+  void (*left) (void *);
+  void (*right) (void *);
+  void (*up) (void *);
+  void (*down) (void *);
+  void (*enter) (void *);
 };
 
 void input_device_registry_global (void *data, struct wl_registry *registry,

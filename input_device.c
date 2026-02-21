@@ -88,27 +88,27 @@ static void input_device_keyboard_dispatch (struct input_device *id,
   switch (keysym) {
   case XKB_KEY_Escape:
     if (id->escape)
-      id->escape ();
+      id->escape (id->data);
     break;
   case XKB_KEY_Left:
     if (id->left)
-      id->left ();
+      id->left (id->data);
     break;
   case XKB_KEY_Right:
     if (id->right)
-      id->right ();
+      id->right (id->data);
     break;
   case XKB_KEY_Up:
     if (id->up)
-      id->up ();
+      id->up (id->data);
     break;
   case XKB_KEY_Down:
     if (id->down)
-      id->down ();
+      id->down (id->data);
     break;
   case XKB_KEY_Return:
     if (id->enter)
-      id->enter ();
+      id->enter (id->data);
     break;
   }
 }
