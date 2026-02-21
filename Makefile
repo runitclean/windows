@@ -60,7 +60,7 @@ ext-image-copy-capture-v1-protocol.c: \
 	$(WAYLAND_SCANNER) private-code $< $@
 
 $(TARGET): $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDLIBS)
+	$(CC) -o $@ $(OBJS) $(LDLIBS) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
