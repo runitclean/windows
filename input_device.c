@@ -257,11 +257,10 @@ void input_device_init (struct input_device *id) {
 }
 
 void input_device_destroy (struct input_device *id) {
-  if (id->pointer)
-    wl_pointer_release (id->pointer);
+  wl_pointer_release (id->pointer);
+  wl_keyboard_release (id->keyboard);
 
-  if (id->keyboard)
-    wl_keyboard_release (id->keyboard);
+  wl_seat_release (id->seat);
 
   xkb_state_unref (id->state);
   xkb_keymap_unref (id->keymap);
