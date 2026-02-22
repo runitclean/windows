@@ -5,12 +5,14 @@ WAYLAND_SCANNER   := $(shell pkg-config --variable=wayland_scanner wayland-scann
 WAYLAND_PROTOCOLS := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
 WAYLAND_HEADER    := \
 	fractional-scale-v1-protocol.h  \
+	viewporter.h \
 	xdg-shell-protocol.h \
 	ext-foreign-toplevel-list-v1-protocol.h \
 	ext-image-capture-source-v1-protocol.h \
 	ext-image-copy-capture-v1-protocol.h
 WAYLAND_INTERFACE := \
 	fractional-scale-v1-protocol.c \
+	viewporter.c \
 	xdg-shell-protocol.c \
 	ext-foreign-toplevel-list-v1-protocol.c \
 	ext-image-capture-source-v1-protocol.c \
@@ -35,6 +37,14 @@ fractional-scale-v1-protocol.h: \
 
 fractional-scale-v1-protocol.c: \
 	$(WAYLAND_PROTOCOLS)/staging/fractional-scale/fractional-scale-v1.xml
+	$(WAYLAND_SCANNER) private-code $< $@
+
+viewporter.h: \
+	$(WAYLAND_PROTOCOLS)/stable/viewporter/viewporter.xml
+	$(WAYLAND_SCANNER) client-header $< $@
+
+viewporter.c: \
+	$(WAYLAND_PROTOCOLS)/stable/viewporter/viewporter.xml
 	$(WAYLAND_SCANNER) private-code $< $@
 
 xdg-shell-protocol.h: \
