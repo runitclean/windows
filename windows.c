@@ -39,8 +39,8 @@ static void callback_done (void *data, struct wl_callback *callback,
 
   wl_callback_destroy (callback);
 
-  w->callback = callback = wl_surface_frame (w->xs->wl_surface);
-  wl_callback_add_listener (callback, &callback_listener, w);
+  w->callback = wl_surface_frame (w->xs->wl_surface);
+  wl_callback_add_listener (w->callback, &callback_listener, w);
 
   if (w->render) {
     cairo_draw_clear (w->cd);
@@ -213,7 +213,7 @@ int32_t main (int32_t argc, char **argv) {
 
   wl_list_for_each (oio, &w.oi->outputs, link) {
     while (!oio->done)
-      wl_display_roundtrip (w.display);
+      ;
 
     if (strcmp (oio->monitor, monitor) == 0) {
       w.buffer_width  = oio->width;
@@ -223,6 +223,7 @@ int32_t main (int32_t argc, char **argv) {
 
   free (monitor);
 
+  // let it leak ;)
   if (!w.buffer_width || !w.buffer_height)
     return 1;
 
@@ -243,30 +244,26 @@ int32_t main (int32_t argc, char **argv) {
     struct image_copy_frame *icf = calloc (1, sizeof (*icf));
 
     while (!tlo->closed && !tlo->done)
-      wl_display_roundtrip (w.display);
-
+      ;
     ws->identifier = strdup (tlo->identifier);
 
     image_copy_session (w.ic, icf, tlo->handle);
+    wl_display_roundtrip (w.display);
 
-    while (!icf->done) {
+    while (!icf->done)
       if (icf->stopped)
         goto error;
-      wl_display_roundtrip (w.display);
-    }
 
     ws->sbo = calloc (1, sizeof (*ws->sbo));
-
     shm_buffer_new (ws->sbo, w.sb->shm, icf->shm_format, icf->width,
                     icf->height);
 
     image_copy_toplevel (icf, ws->sbo->buffer);
+    wl_display_roundtrip (w.display);
 
-    while (!icf->ready) {
+    while (!icf->ready)
       if (icf->failed)
         goto error;
-      wl_display_roundtrip (w.display);
-    }
 
   error:
     ws->error = icf->stopped || icf->failed;
@@ -278,20 +275,21 @@ int32_t main (int32_t argc, char **argv) {
   toplevel_list_destroy (w.tl);
 
   xdg_shell_init (w.xs, "Window Overview", "windows");
+  wl_display_roundtrip (w.display);
 
   while (!w.xs->configure)
-    wl_display_roundtrip (w.display);
+    ;
 
   expose_algorithm_init (w.ea, w.buffer_width, w.buffer_height,
                          wl_list_length (&w.windows));
 
   struct windows_state *ws, *tmp;
-  int32_t               i = 0;
+  uint32_t              index = 0;
 
   wl_list_for_each (ws, &w.windows, link) {
-    struct expose_algorithm_window *eaw = &w.ea->eaw[i];
+    struct expose_algorithm_window *eaw = &w.ea->eaw[index];
 
-    eaw->index  = i++;
+    eaw->index  = index++;
     eaw->width  = ws->sbo->width;
     eaw->height = ws->sbo->height;
     eaw->data   = ws;
@@ -306,10 +304,10 @@ int32_t main (int32_t argc, char **argv) {
   cairo_draw_init (w.cd, w.sb->sbo->data, w.sb->sbo->width, w.sb->sbo->height,
                    w.sb->sbo->stride);
 
-  struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
-  wl_callback_add_listener (callback, &callback_listener, &w);
+  w.callback = wl_surface_frame (w.xs->wl_surface);
+  wl_callback_add_listener (w.callback, &callback_listener, &w);
 
-  // submit an initial frame for the frame done callback
+  // submit an initial frame for the frame done event
   xdg_shell_present (w.xs, w.sb->sbo->buffer);
   w.render = true;
 
@@ -337,6 +335,7 @@ int32_t main (int32_t argc, char **argv) {
       input_device_dispatch (w.id);
   }
 
+  // cleanup before we free w.sb
   shm_buffer_delete (w.sb->sbo);
 
   cairo_draw_destroy (w.cd);
