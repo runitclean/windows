@@ -1,6 +1,5 @@
 #pragma once
 
-#include "fractional-scale-v1-protocol.h"
 #include "global.h"
 
 struct output_info {
