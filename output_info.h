@@ -11,11 +11,11 @@ struct output_info_object {
 
   struct wl_output *output;
 
-  int32_t  width, height;
   uint32_t name;
 
-  bool  done;
-  char *monitor;
+  int32_t width, height;
+  char   *monitor;
+  bool    done;
 };
 
 void output_info_registry_global (void *data, struct wl_registry *registry,
