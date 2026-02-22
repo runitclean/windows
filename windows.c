@@ -68,9 +68,8 @@ static void usage (FILE *out, const char *name) {
   fprintf (out,
            "Usage: %s [options...]\n"
            "\n"
-           " -h             Show this help message and quit.\n"
-           " -g <geometry>  Configure monitor geometry.\n"
-           " -s <scale>     Configure monitor scale factor.\n"
+           " -h            Show this help message and quit.\n"
+           " -o <monitor>  Configure designated output monitor.\n"
            "\n"
            "Copyright (C) 2026 Jing Huang.\n",
            name);
@@ -167,33 +166,21 @@ static void enter (void *data) {
 
 int32_t main (int32_t argc, char **argv) {
   int32_t opt;
+  char   *monitor;
 
-  char   *end;
-  int32_t width, height;
-  float   scale;
-
-  width = height = scale = 1;
-
-  while ((opt = getopt (argc, argv, "hg:s:")) != -1) {
+  while ((opt = getopt (argc, argv, "ho:")) != -1) {
     switch (opt) {
     case 'h':
       usage (stdout, *argv);
       return 0;
-    case 'g':
-      width  = strtol (optarg, &end, 10);
-      height = strtol (++end, &end, 10);
-      break;
-    case 's':
-      scale = atof (optarg);
+    case 'o':
+      monitor = strdup (optarg);
       break;
     default:
       usage (stderr, *argv);
       return 1;
     }
   }
-
-  if (width <= 1 || height <= 1)
-    return 1;
 
   struct windows w;
 
@@ -219,6 +206,26 @@ int32_t main (int32_t argc, char **argv) {
   image_copy_init (w.ic);
 
   wl_display_roundtrip (w.display);
+
+  struct output_info_object *oio;
+
+  int32_t width, height;
+  width = height = 0;
+
+  wl_list_for_each (oio, &w.oi->outputs, link) {
+    while (!oio->done)
+      wl_display_roundtrip (w.display);
+
+    if (strcmp (oio->monitor, monitor) == 0) {
+      width  = oio->width;
+      height = oio->height;
+    }
+  }
+
+  free (monitor);
+
+  if (!width || !height)
+    return 1;
 
   w.id->data   = &w;
   w.id->escape = escape;
@@ -293,8 +300,8 @@ int32_t main (int32_t argc, char **argv) {
     eaw->data   = ws;
   }
 
-  w.ea->display_width  = width / scale;
-  w.ea->display_height = height / scale;
+  w.ea->display_width  = width;
+  w.ea->display_height = height;
 
   expose_algorithm_decide (w.ea);
 
