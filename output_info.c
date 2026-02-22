@@ -17,12 +17,15 @@ static void output_listener_mode (void *data, struct wl_output *output,
   // non-current modes are depreciated, while compositors might still decide to
   // advertse it (really?)
   if (flags & WL_OUTPUT_MODE_CURRENT) {
-    oio->width = width;
-    oio->width = height;
+    oio->width  = width;
+    oio->height = height;
   }
 }
 
-static void output_listener_done (void *data, struct wl_output *output) {}
+static void output_listener_done (void *data, struct wl_output *output) {
+  struct output_info_object *oio = data;
+  oio->done                      = true;
+}
 
 static void output_listener_scale (void *data, struct wl_output *output,
                                    int32_t factor) {

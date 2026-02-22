@@ -14,6 +14,7 @@ struct output_info_object {
   int32_t  width, height;
   uint32_t name;
 
+  bool  done;
   char *monitor;
 };
 
