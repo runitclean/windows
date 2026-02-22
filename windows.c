@@ -5,6 +5,7 @@ static void registry_global (void *data, struct wl_registry *registry,
                              uint32_t version) {
   struct windows *w = data;
 
+  output_info_registry_global (w->oi, registry, name, interface, version);
   input_device_registry_global (w->id, registry, name, interface, version);
   toplevel_list_registry_global (w->tl, registry, name, interface, version);
   image_copy_registry_global (w->ic, registry, name, interface, version);
@@ -16,6 +17,7 @@ static void registry_global_remove (void *data, struct wl_registry *registry,
                                     uint32_t name) {
   struct windows *w = data;
 
+  output_info_registry_global_remove (w->oi, registry, name);
   input_device_registry_global_remove (w->id, registry, name);
   toplevel_list_registry_global_remove (w->tl, registry, name);
   image_copy_registry_global_remove (w->ic, registry, name);
@@ -195,6 +197,7 @@ int32_t main (int32_t argc, char **argv) {
 
   struct windows w;
 
+  w.oi = calloc (1, sizeof (*w.oi));
   w.id = calloc (1, sizeof (*w.id));
   w.tl = calloc (1, sizeof (*w.tl));
   w.ic = calloc (1, sizeof (*w.ic));
@@ -206,6 +209,7 @@ int32_t main (int32_t argc, char **argv) {
   w.display  = wl_display_connect (NULL);
   w.registry = wl_display_get_registry (w.display);
 
+  output_info_init (w.oi);
   input_device_init (w.id);
 
   wl_registry_add_listener (w.registry, &registry_listener, &w);
@@ -345,6 +349,7 @@ int32_t main (int32_t argc, char **argv) {
   xdg_shell_destroy (w.xs);
   image_copy_destroy (w.ic);
   input_device_destroy (w.id);
+  output_info_destroy (w.oi);
 
   wl_shm_destroy (w.shm);
 
@@ -365,6 +370,7 @@ int32_t main (int32_t argc, char **argv) {
   wl_registry_destroy (w.registry);
   wl_display_disconnect (w.display);
 
+  free (w.oi);
   free (w.id);
   free (w.tl);
   free (w.ic);

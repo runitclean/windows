@@ -5,11 +5,13 @@
 #include "global.h"
 #include "image_copy.h"
 #include "input_device.h"
+#include "output_info.h"
 #include "shm_buffer.h"
 #include "toplevel_list.h"
 #include "xdg_shell.h"
 
 struct windows {
+  struct output_info      *oi;
   struct input_device     *id;
   struct toplevel_list    *tl;
   struct image_copy       *ic;
