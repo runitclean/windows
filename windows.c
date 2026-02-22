@@ -206,10 +206,11 @@ int32_t main (int32_t argc, char **argv) {
   w.display  = wl_display_connect (NULL);
   w.registry = wl_display_get_registry (w.display);
 
+  input_device_init (w.id);
+
   wl_registry_add_listener (w.registry, &registry_listener, &w);
   wl_display_roundtrip (w.display);
 
-  input_device_init (w.id);
   toplevel_list_init (w.tl);
   image_copy_init (w.ic);
 

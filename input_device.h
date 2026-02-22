@@ -3,16 +3,11 @@
 #include "global.h"
 
 struct input_device {
-  struct wl_seat     *seat;
-  struct wl_pointer  *pointer;
+  struct wl_list seats;
+
   struct wl_keyboard *keyboard;
-
-  struct xkb_context *context;
-  struct xkb_keymap  *keymap;
-  struct xkb_state   *state;
-
-  int32_t       repeat_timer, repeat_rate, repeat_delay;
-  xkb_keycode_t repeat_key;
+  int32_t             repeat_timer;
+  xkb_keycode_t       repeat_key;
 
   void *data;
 
@@ -22,6 +17,23 @@ struct input_device {
   void (*up) (void *);
   void (*down) (void *);
   void (*enter) (void *);
+};
+
+struct input_device_seat {
+  struct wl_list link;
+
+  struct input_device *id;
+
+  struct wl_seat     *seat;
+  struct wl_pointer  *pointer;
+  struct wl_keyboard *keyboard;
+
+  struct xkb_context *context;
+  struct xkb_keymap  *keymap;
+  struct xkb_state   *state;
+
+  int32_t  repeat_rate, repeat_delay;
+  uint32_t name;
 };
 
 void input_device_registry_global (void *data, struct wl_registry *registry,

@@ -61,29 +61,31 @@ static const struct wl_pointer_listener pointer_listener = {
 static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
                                       uint32_t format, int32_t fd,
                                       uint32_t size) {
-  struct input_device *id = data;
+  struct input_device_seat *ids = data;
 
   if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)
     return;
 
-  xkb_state_unref (id->state);
-  xkb_keymap_unref (id->keymap);
+  xkb_state_unref (ids->state);
+  xkb_keymap_unref (ids->keymap);
 
   // from wl_seat version 7 onwards, the fd must be mapped with MAP_PRIVATE by
   // the recipient, as MAP_SHARED may fail
   char *shm = mmap (NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
 
-  id->keymap = xkb_keymap_new_from_string (
-    id->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
-  id->state = xkb_state_new (id->keymap);
+  ids->keymap = xkb_keymap_new_from_string (
+    ids->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+  ids->state = xkb_state_new (ids->keymap);
 
   munmap (shm, size);
   close (fd);
 }
 
-static void input_device_keyboard_dispatch (struct input_device *id,
-                                            xkb_keycode_t        keycode) {
-  xkb_keysym_t keysym = xkb_state_key_get_one_sym (id->state, keycode);
+static void input_device_keyboard_dispatch (struct input_device_seat *ids,
+                                            xkb_keycode_t             keycode) {
+  struct input_device *id = ids->id;
+
+  xkb_keysym_t keysym = xkb_state_key_get_one_sym (ids->state, keycode);
 
   switch (keysym) {
   case XKB_KEY_Escape:
@@ -125,50 +127,53 @@ static void keyboard_listener_leave (void *data, struct wl_keyboard *keyboard,
 static void keyboard_listener_key (void *data, struct wl_keyboard *keyboard,
                                    uint32_t serial, uint32_t time, uint32_t key,
                                    uint32_t state) {
-  struct input_device *id = data;
+  struct input_device_seat *ids = data;
+
+  ids->id->keyboard = keyboard;
 
   xkb_keycode_t keycode = key + 8;
 
   switch (state) {
   case WL_KEYBOARD_KEY_STATE_PRESSED:
-    xkb_state_update_key (id->state, keycode, XKB_KEY_DOWN);
-    input_device_keyboard_dispatch (id, keycode);
+    xkb_state_update_key (ids->state, keycode, XKB_KEY_DOWN);
+    input_device_keyboard_dispatch (ids, keycode);
     break;
   case WL_KEYBOARD_KEY_STATE_RELEASED:
-    xkb_state_update_key (id->state, keycode, XKB_KEY_UP);
+    xkb_state_update_key (ids->state, keycode, XKB_KEY_UP);
     break;
   case WL_KEYBOARD_KEY_STATE_REPEATED:
     // ``repeat'' pseudo-state available only since version 10
-    if (!xkb_keymap_key_repeats (id->keymap, keycode))
+    if (!xkb_keymap_key_repeats (ids->keymap, keycode))
       return;
-    input_device_keyboard_dispatch (id, keycode);
+    input_device_keyboard_dispatch (ids, keycode);
     break;
   }
 
-  if (state == WL_KEYBOARD_KEY_STATE_PRESSED && id->repeat_rate > 0 &&
-      xkb_keymap_key_repeats (id->keymap, keycode)) {
+  if (state == WL_KEYBOARD_KEY_STATE_PRESSED && ids->repeat_rate > 0 &&
+      xkb_keymap_key_repeats (ids->keymap, keycode)) {
     struct itimerspec timer = {
       .it_value =
         {
-          .tv_sec  = id->repeat_delay / (int32_t) 1e3,
-          .tv_nsec = (id->repeat_delay % (int32_t) 1e3) * (int32_t) 1e6,
+          .tv_sec  = ids->repeat_delay / (int32_t) 1e3,
+          .tv_nsec = (ids->repeat_delay % (int32_t) 1e3) * (int32_t) 1e6,
         },
       .it_interval =
         {
           .tv_sec  = 0,
-          .tv_nsec = (int32_t) 1e9 / id->repeat_rate,
+          .tv_nsec = (int32_t) 1e9 / ids->repeat_rate,
         },
     };
 
-    timerfd_settime (id->repeat_timer, 0, &timer, NULL);
-    id->repeat_key = keycode;
+    timerfd_settime (ids->id->repeat_timer, 0, &timer, NULL);
+    ids->id->repeat_key = keycode;
   }
 
-  if (state == WL_KEYBOARD_KEY_STATE_RELEASED && keycode == id->repeat_key) {
+  if (state == WL_KEYBOARD_KEY_STATE_RELEASED &&
+      keycode == ids->id->repeat_key) {
     struct itimerspec timer = {0};
 
-    timerfd_settime (id->repeat_timer, 0, &timer, NULL);
-    id->repeat_key = 0;
+    timerfd_settime (ids->id->repeat_timer, 0, &timer, NULL);
+    ids->id->repeat_key = 0;
   }
 }
 
@@ -178,17 +183,17 @@ static void keyboard_listener_modifiers (void               *data,
                                          uint32_t            mods_depressed,
                                          uint32_t            mods_latched,
                                          uint32_t mods_locked, uint32_t group) {
-  struct input_device *id = data;
-  xkb_state_update_mask (id->state, mods_depressed, mods_latched, mods_locked,
+  struct input_device_seat *ids = data;
+  xkb_state_update_mask (ids->state, mods_depressed, mods_latched, mods_locked,
                          0, 0, group);
 }
 
 static void keyboard_listener_repeat_info (void               *data,
                                            struct wl_keyboard *keyboard,
                                            int32_t rate, int32_t delay) {
-  struct input_device *id = data;
-  id->repeat_rate         = rate;
-  id->repeat_delay        = delay;
+  struct input_device_seat *ids = data;
+  ids->repeat_rate              = rate;
+  ids->repeat_delay             = delay;
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
@@ -202,27 +207,27 @@ static const struct wl_keyboard_listener keyboard_listener = {
 
 static void seat_listener_capabilities (void *data, struct wl_seat *seat,
                                         uint32_t capabilities) {
-  struct input_device *id = data;
+  struct input_device_seat *ids = data;
 
   bool pointer, keyboard;
 
   pointer  = capabilities & WL_SEAT_CAPABILITY_POINTER;
   keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
 
-  if (pointer && id->pointer == NULL) {
-    id->pointer = wl_seat_get_pointer (id->seat);
-    wl_pointer_add_listener (id->pointer, &pointer_listener, id);
-  } else if (!pointer && id->pointer != NULL) {
-    wl_pointer_release (id->pointer);
-    id->pointer = NULL;
+  if (pointer && ids->pointer == NULL) {
+    ids->pointer = wl_seat_get_pointer (ids->seat);
+    wl_pointer_add_listener (ids->pointer, &pointer_listener, ids);
+  } else if (!pointer && ids->pointer != NULL) {
+    wl_pointer_release (ids->pointer);
+    ids->pointer = NULL;
   }
 
-  if (keyboard && id->keyboard == NULL) {
-    id->keyboard = wl_seat_get_keyboard (id->seat);
-    wl_keyboard_add_listener (id->keyboard, &keyboard_listener, id);
-  } else if (!keyboard && id->keyboard != NULL) {
-    wl_keyboard_release (id->keyboard);
-    id->keyboard = NULL;
+  if (keyboard && ids->keyboard == NULL) {
+    ids->keyboard = wl_seat_get_keyboard (ids->seat);
+    wl_keyboard_add_listener (ids->keyboard, &keyboard_listener, ids);
+  } else if (!keyboard && ids->keyboard != NULL) {
+    wl_keyboard_release (ids->keyboard);
+    ids->keyboard = NULL;
   }
 }
 
@@ -239,32 +244,75 @@ void input_device_registry_global (void *data, struct wl_registry *registry,
                                    uint32_t version) {
   struct input_device *id = data;
 
-  if (strcmp (interface, wl_seat_interface.name) == 0)
-    id->seat = wl_registry_bind (registry, name, &wl_seat_interface, 7);
+  if (strcmp (interface, wl_seat_interface.name) == 0) {
+    struct wl_seat *seat =
+      wl_registry_bind (registry, name, &wl_seat_interface, 7);
+
+    struct input_device_seat *ids = calloc (1, sizeof (*ids));
+
+    ids->seat    = seat;
+    ids->id      = id;
+    ids->name    = name;
+    ids->context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
+
+    wl_list_insert (&id->seats, &ids->link);
+
+    wl_seat_add_listener (seat, &seat_listener, ids);
+  }
 }
 
 void input_device_registry_global_remove (void               *data,
                                           struct wl_registry *registry,
-                                          uint32_t            name) {}
+                                          uint32_t            name) {
+  struct input_device      *id = data;
+  struct input_device_seat *ids, *tmp;
+
+  wl_list_for_each_safe (ids, tmp, &id->seats, link) if (ids->name == name) {
+    wl_list_remove (&ids->link);
+
+    if (ids->pointer)
+      wl_pointer_release (ids->pointer);
+
+    if (ids->keyboard)
+      wl_keyboard_release (ids->keyboard);
+
+    wl_seat_release (ids->seat);
+
+    xkb_state_unref (ids->state);
+    xkb_keymap_unref (ids->keymap);
+    xkb_context_unref (ids->context);
+
+    free (ids);
+  }
+}
 
 void input_device_init (struct input_device *id) {
-  wl_seat_add_listener (id->seat, &seat_listener, id);
-
-  id->context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
+  wl_list_init (&id->seats);
 
   id->repeat_timer = timerfd_create (CLOCK_MONOTONIC, TFD_NONBLOCK);
   id->repeat_key   = 0;
 }
 
 void input_device_destroy (struct input_device *id) {
-  wl_pointer_release (id->pointer);
-  wl_keyboard_release (id->keyboard);
+  struct input_device_seat *ids, *tmp;
 
-  wl_seat_release (id->seat);
+  wl_list_for_each_safe (ids, tmp, &id->seats, link) {
+    wl_list_remove (&ids->link);
 
-  xkb_state_unref (id->state);
-  xkb_keymap_unref (id->keymap);
-  xkb_context_unref (id->context);
+    if (ids->pointer)
+      wl_pointer_release (ids->pointer);
+
+    if (ids->keyboard)
+      wl_keyboard_release (ids->keyboard);
+
+    wl_seat_release (ids->seat);
+
+    xkb_state_unref (ids->state);
+    xkb_keymap_unref (ids->keymap);
+    xkb_context_unref (ids->context);
+
+    free (ids);
+  }
 
   close (id->repeat_timer);
 }
@@ -276,6 +324,11 @@ void input_device_dispatch (struct input_device *id) {
                                sizeof (expirations)) != sizeof (expirations))
     return;
 
-  for (uint64_t i = 0; i < expirations; i++)
-    input_device_keyboard_dispatch (id, id->repeat_key);
+  struct input_device_seat *ids;
+
+  wl_list_for_each (ids, &id->seats, link) {
+    if (id->keyboard == ids->keyboard)
+      for (uint64_t i = 0; i < expirations; i++)
+        input_device_keyboard_dispatch (ids, id->repeat_key);
+  }
 }
