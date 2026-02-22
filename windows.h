@@ -27,7 +27,8 @@ struct windows {
 
   struct wl_list windows;
 
-  bool render;
+  int32_t buffer_width, buffer_height;
+  bool    render;
 };
 
 struct windows_state {

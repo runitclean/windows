@@ -57,6 +57,7 @@ static void callback_done (void *data, struct wl_callback *callback,
 
   w->render = false;
 
+  xdg_shell_viewport (w->xs, w->buffer_width, w->buffer_height);
   xdg_shell_present (w->xs, w->sb->buffer);
 }
 
@@ -209,22 +210,21 @@ int32_t main (int32_t argc, char **argv) {
 
   struct output_info_object *oio;
 
-  int32_t buffer_width, buffer_height;
-  buffer_width = buffer_height = 0;
+  w.buffer_width = w.buffer_height = 0;
 
   wl_list_for_each (oio, &w.oi->outputs, link) {
     while (!oio->done)
       wl_display_roundtrip (w.display);
 
     if (strcmp (oio->monitor, monitor) == 0) {
-      buffer_width  = oio->width;
-      buffer_height = oio->height;
+      w.buffer_width  = oio->width;
+      w.buffer_height = oio->height;
     }
   }
 
   free (monitor);
 
-  if (!buffer_width || !buffer_height)
+  if (!w.buffer_width || !w.buffer_height)
     return 1;
 
   w.id->data   = &w;
@@ -300,31 +300,21 @@ int32_t main (int32_t argc, char **argv) {
     eaw->data   = ws;
   }
 
-  w.ea->width  = buffer_width;
-  w.ea->height = buffer_height;
+  w.ea->width  = w.buffer_width;
+  w.ea->height = w.buffer_height;
 
   expose_algorithm_decide (w.ea);
 
-  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, buffer_width,
-                   buffer_height, buffer_width * 4);
+  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
+                   w.buffer_height, w.buffer_width * 4);
   cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
   struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
   wl_callback_add_listener (callback, &callback_listener, &w);
 
   // submit an initial frame for the frame done callback
-  for (uint32_t i = 0; i < w.ea->window_count; i++) {
-    struct expose_algorithm_window eaw = w.ea->eaw[i];
-    struct windows_state          *ws  = eaw.data;
-
-    cairo_draw_window (w.cd, ws->sb->data, ws->sb->width, ws->sb->height,
-                       ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
-                       eaw.focused);
-  }
-
-  w.render = false;
-
   xdg_shell_present (w.xs, w.sb->buffer);
+  w.render = true;
 
   struct pollfd fds[2] = {
     {
