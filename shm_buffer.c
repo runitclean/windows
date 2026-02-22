@@ -86,13 +86,9 @@ void shm_buffer_init (struct shm_buffer *sb, struct wl_shm *shm,
   sb->width  = width;
   sb->height = height;
   sb->stride = stride;
-  sb->format = format;
 }
 
 void shm_buffer_destroy (struct shm_buffer *sb) {
-  if (sb == NULL)
-    return;
-
   munmap (sb->data, sb->height * sb->stride);
   wl_buffer_destroy (sb->buffer);
 }

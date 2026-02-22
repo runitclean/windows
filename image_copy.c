@@ -141,5 +141,6 @@ void image_copy_toplevel (struct image_copy_frame *icf,
   ext_image_copy_capture_frame_v1_attach_buffer (icf->frame, buffer);
   ext_image_copy_capture_frame_v1_damage_buffer (icf->frame, 0, 0, INT32_MAX,
                                                  INT32_MAX);
+
   ext_image_copy_capture_frame_v1_capture (icf->frame);
 }

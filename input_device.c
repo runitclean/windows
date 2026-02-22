@@ -326,9 +326,9 @@ void input_device_dispatch (struct input_device *id) {
 
   struct input_device_seat *ids;
 
-  wl_list_for_each (ids, &id->seats, link) {
-    if (id->keyboard == ids->keyboard)
-      for (uint64_t i = 0; i < expirations; i++)
-        input_device_keyboard_dispatch (ids, id->repeat_key);
-  }
+  wl_list_for_each (ids, &id->seats,
+                    link) if (id->keyboard ==
+                              ids->keyboard) for (uint64_t i = 0;
+                                                  i < expirations; i++)
+    input_device_keyboard_dispatch (ids, id->repeat_key);
 }

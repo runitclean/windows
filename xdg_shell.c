@@ -113,9 +113,6 @@ void xdg_shell_destroy (struct xdg_shell *xs) {
 
 void xdg_shell_viewport (struct xdg_shell *xs, int32_t buffer_width,
                          int32_t buffer_height) {
-  if (xs->scale == 0.)
-    return;
-
   wp_viewport_set_destination (xs->viewport, buffer_width / xs->scale,
                                buffer_height / xs->scale);
 }

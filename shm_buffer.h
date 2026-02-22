@@ -7,8 +7,6 @@ struct shm_buffer {
   void             *data;
 
   int32_t width, height, stride;
-
-  enum wl_shm_format format;
 };
 
 void shm_buffer_registry_global (void *data, struct wl_registry *registry,
