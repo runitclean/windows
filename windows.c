@@ -209,22 +209,22 @@ int32_t main (int32_t argc, char **argv) {
 
   struct output_info_object *oio;
 
-  int32_t width, height;
-  width = height = 0;
+  int32_t buffer_width, buffer_height;
+  buffer_width = buffer_height = 0;
 
   wl_list_for_each (oio, &w.oi->outputs, link) {
     while (!oio->done)
       wl_display_roundtrip (w.display);
 
     if (strcmp (oio->monitor, monitor) == 0) {
-      width  = oio->width;
-      height = oio->height;
+      buffer_width  = oio->width;
+      buffer_height = oio->height;
     }
   }
 
   free (monitor);
 
-  if (!width || !height)
+  if (!buffer_width || !buffer_height)
     return 1;
 
   w.id->data   = &w;
@@ -300,13 +300,13 @@ int32_t main (int32_t argc, char **argv) {
     eaw->data   = ws;
   }
 
-  w.ea->display_width  = width;
-  w.ea->display_height = height;
+  w.ea->width  = buffer_width;
+  w.ea->height = buffer_height;
 
   expose_algorithm_decide (w.ea);
 
-  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.ea->display_width,
-                   w.ea->display_height, w.ea->display_width * 4);
+  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, buffer_width,
+                   buffer_height, buffer_width * 4);
   cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
   struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
