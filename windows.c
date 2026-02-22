@@ -50,8 +50,7 @@ static void callback_done (void *data, struct wl_callback *callback,
       struct windows_state          *ws  = eaw.data;
 
       cairo_draw_window (w->cd, ws->sb->data, ws->sb->width, ws->sb->height,
-                         ws->sb->stride, eaw.x, eaw.y, eaw.scale_factor,
-                         eaw.focused);
+                         ws->sb->stride, eaw.x, eaw.y, eaw.scale, eaw.focused);
     }
   }
 
@@ -276,7 +275,6 @@ int32_t main (int32_t argc, char **argv) {
     free (icf);
 
     wl_list_insert (&w.windows, &ws->link);
-    w.ea->window_count++;
   }
 
   toplevel_list_destroy (w.tl);
@@ -286,7 +284,8 @@ int32_t main (int32_t argc, char **argv) {
   while (!w.xs->configure)
     wl_display_roundtrip (w.display);
 
-  expose_algorithm_init (w.ea);
+  expose_algorithm_init (w.ea, w.buffer_width, w.buffer_height,
+                         wl_list_length (&w.windows));
 
   struct windows_state *ws, *tmp;
   int32_t               i = 0;
@@ -294,16 +293,13 @@ int32_t main (int32_t argc, char **argv) {
   wl_list_for_each (ws, &w.windows, link) {
     struct expose_algorithm_window *eaw = &w.ea->eaw[i];
 
-    eaw->node   = i++;
+    eaw->index  = i++;
     eaw->width  = ws->sb->width;
     eaw->height = ws->sb->height;
     eaw->data   = ws;
   }
 
-  w.ea->width  = w.buffer_width;
-  w.ea->height = w.buffer_height;
-
-  expose_algorithm_decide (w.ea);
+  expose_algorithm_allocate (w.ea);
 
   shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
                    w.buffer_height, w.buffer_width * 4);

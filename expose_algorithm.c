@@ -1,13 +1,5 @@
 #include "expose_algorithm.h"
 
-static void expose_algorithm_phantom (struct expose_algorithm_window *eaw,
-                                      uint32_t window_count) {
-  for (uint32_t i = 0; i < window_count; i++) {
-    eaw[i].phantom_width  = eaw[i].width + window_margin;
-    eaw[i].phantom_height = eaw[i].height + window_margin;
-  }
-}
-
 static int32_t expose_algorithm_compare (const void *a, const void *b) {
   struct expose_algorithm_window *w1 = (struct expose_algorithm_window *) a;
   struct expose_algorithm_window *w2 = (struct expose_algorithm_window *) b;
@@ -18,7 +10,7 @@ static int32_t expose_algorithm_compare (const void *a, const void *b) {
   if (w1->phantom_width != w2->phantom_width)
     return w2->phantom_width - w1->phantom_width;
 
-  return (int32_t) w2->node - (int32_t) w1->node;
+  return (int32_t) w2->index - (int32_t) w1->index;
 }
 
 static int32_t expose_algorithm_nfdh (int32_t shelf_width,
@@ -232,7 +224,7 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
   for (uint32_t i = 0; i < ea->window_count; i++) {
     struct expose_algorithm_window *eaw = &ea->eaw[i];
 
-    eaw->scale_factor = scale_factor;
+    eaw->scale = scale_factor;
 
     eaw->x += window_margin / 2;
     eaw->x *= scale_factor;
@@ -244,13 +236,25 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
   }
 }
 
-void expose_algorithm_init (struct expose_algorithm *ea) {
-  ea->eaw = calloc (ea->window_count, sizeof (*ea->eaw));
+void expose_algorithm_init (struct expose_algorithm *ea, int32_t width,
+                            int32_t height, int32_t window_count) {
+  ea->width  = width;
+  ea->height = height;
+
+  ea->window_count = window_count;
+
+  ea->eaw = calloc (window_count, sizeof (*ea->eaw));
 }
 
 void expose_algorithm_destroy (struct expose_algorithm *ea) { free (ea->eaw); }
 
-void expose_algorithm_decide (struct expose_algorithm *ea) {
-  expose_algorithm_phantom (ea->eaw, ea->window_count);
+void expose_algorithm_allocate (struct expose_algorithm *ea) {
+  for (uint32_t i = 0; i < ea->window_count; i++) {
+    struct expose_algorithm_window *eaw = &ea->eaw[i];
+
+    eaw->phantom_width  = eaw->width + window_margin;
+    eaw->phantom_height = eaw->height + window_margin;
+  }
+
   expose_algorithm_pack (expose_algorithm_trial (ea), ea);
 }
