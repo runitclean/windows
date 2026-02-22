@@ -5,7 +5,7 @@
 #define window_margin 100
 
 struct expose_algorithm {
-  int32_t  display_width, display_height;
+  int32_t  width, height;
   uint32_t window_count;
 
   struct expose_algorithm_window *eaw;

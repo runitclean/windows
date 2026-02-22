@@ -50,8 +50,7 @@ expose_algorithm_trial (struct expose_algorithm *ea) {
   qsort (ea->eaw, ea->window_count, sizeof (*ea->eaw),
          expose_algorithm_compare);
 
-  const float target_ratio =
-    (float) ea->display_height / (float) ea->display_width;
+  const float target_ratio = (float) ea->height / (float) ea->width;
 
   int32_t shelf_width_min, shelf_width_max, shelf_height_min, shelf_height_max;
   shelf_width_min = shelf_width_max = 0;
@@ -226,8 +225,8 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
     }
   }
 
-  float width_ratio  = (float) ea->display_width / (float) eas.width;
-  float height_ratio = (float) ea->display_height / (float) eas.height;
+  float width_ratio  = (float) ea->width / (float) eas.width;
+  float height_ratio = (float) ea->height / (float) eas.height;
   float scale_factor = width_ratio < height_ratio ? width_ratio : height_ratio;
 
   for (uint32_t i = 0; i < ea->window_count; i++) {
@@ -237,11 +236,11 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
 
     eaw->x += window_margin / 2;
     eaw->x *= scale_factor;
-    eaw->x += (ea->display_width - eas.width * scale_factor) / 2;
+    eaw->x += (ea->width - eas.width * scale_factor) / 2;
 
     eaw->y += window_margin / 2;
     eaw->y *= scale_factor;
-    eaw->y += (ea->display_height - eas.height * scale_factor) / 2;
+    eaw->y += (ea->height - eas.height * scale_factor) / 2;
   }
 }
 
