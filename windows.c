@@ -221,11 +221,11 @@ int32_t main (int32_t argc, char **argv) {
     }
   }
 
-  free (monitor);
-
   // let it leak ;)
   if (!w.buffer_width || !w.buffer_height)
     return 1;
+
+  free (monitor);
 
   w.id->data   = &w;
   w.id->escape = escape;
