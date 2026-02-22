@@ -10,7 +10,7 @@ static void registry_global (void *data, struct wl_registry *registry,
   toplevel_list_registry_global (w->tl, registry, name, interface, version);
   image_copy_registry_global (w->ic, registry, name, interface, version);
   xdg_shell_registry_global (w->xs, registry, name, interface, version);
-  shm_buffer_registry_global (&w->shm, registry, name, interface, version);
+  shm_buffer_registry_global (w->sb, registry, name, interface, version);
 }
 
 static void registry_global_remove (void *data, struct wl_registry *registry,
@@ -22,7 +22,7 @@ static void registry_global_remove (void *data, struct wl_registry *registry,
   toplevel_list_registry_global_remove (w->tl, registry, name);
   image_copy_registry_global_remove (w->ic, registry, name);
   xdg_shell_registry_global_remove (w->xs, registry, name);
-  shm_buffer_registry_global_remove (&w->shm, registry, name);
+  shm_buffer_registry_global_remove (w->sb, registry, name);
 }
 
 static const struct wl_registry_listener registry_listener = {
@@ -49,15 +49,15 @@ static void callback_done (void *data, struct wl_callback *callback,
       struct expose_algorithm_window eaw = w->ea->eaw[i];
       struct windows_state          *ws  = eaw.data;
 
-      cairo_draw_window (w->cd, ws->sb->data, ws->sb->width, ws->sb->height,
-                         ws->sb->stride, eaw.x, eaw.y, eaw.scale, eaw.focused);
+      cairo_draw_window (w->cd, ws->sbo->data, ws->sbo->width, ws->sbo->height,
+                         ws->sbo->stride, eaw.x, eaw.y, eaw.scale, eaw.focused);
     }
   }
 
   w->render = false;
 
   xdg_shell_viewport (w->xs, w->buffer_width, w->buffer_height);
-  xdg_shell_present (w->xs, w->sb->buffer);
+  xdg_shell_present (w->xs, w->sb->sbo->buffer);
 }
 
 static const struct wl_callback_listener callback_listener = {
@@ -255,11 +255,12 @@ int32_t main (int32_t argc, char **argv) {
       wl_display_roundtrip (w.display);
     }
 
-    ws->sb = calloc (1, sizeof (*ws->sb));
+    ws->sbo = calloc (1, sizeof (*ws->sbo));
 
-    shm_buffer_init (ws->sb, w.shm, icf->shm_format, icf->width, icf->height);
+    shm_buffer_new (ws->sbo, w.sb->shm, icf->shm_format, icf->width,
+                    icf->height);
 
-    image_copy_toplevel (icf, ws->sb->buffer);
+    image_copy_toplevel (icf, ws->sbo->buffer);
 
     while (!icf->ready) {
       if (icf->failed)
@@ -291,22 +292,25 @@ int32_t main (int32_t argc, char **argv) {
     struct expose_algorithm_window *eaw = &w.ea->eaw[i];
 
     eaw->index  = i++;
-    eaw->width  = ws->sb->width;
-    eaw->height = ws->sb->height;
+    eaw->width  = ws->sbo->width;
+    eaw->height = ws->sbo->height;
     eaw->data   = ws;
   }
 
   expose_algorithm_allocate (w.ea);
 
-  shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
-                   w.buffer_height);
-  cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
+  shm_buffer_init (w.sb);
+  shm_buffer_new (w.sb->sbo, w.sb->shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
+                  w.buffer_height);
+
+  cairo_draw_init (w.cd, w.sb->sbo->data, w.sb->sbo->width, w.sb->sbo->height,
+                   w.sb->sbo->stride);
 
   struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);
   wl_callback_add_listener (callback, &callback_listener, &w);
 
   // submit an initial frame for the frame done callback
-  xdg_shell_present (w.xs, w.sb->buffer);
+  xdg_shell_present (w.xs, w.sb->sbo->buffer);
   w.render = true;
 
   struct pollfd fds[2] = {
@@ -333,6 +337,8 @@ int32_t main (int32_t argc, char **argv) {
       input_device_dispatch (w.id);
   }
 
+  shm_buffer_delete (w.sb->sbo);
+
   cairo_draw_destroy (w.cd);
   shm_buffer_destroy (w.sb);
   expose_algorithm_destroy (w.ea);
@@ -341,14 +347,12 @@ int32_t main (int32_t argc, char **argv) {
   input_device_destroy (w.id);
   output_info_destroy (w.oi);
 
-  wl_shm_destroy (w.shm);
-
   wl_list_for_each_safe (ws, tmp, &w.windows, link) {
     wl_list_remove (&ws->link);
 
-    shm_buffer_destroy (ws->sb);
+    shm_buffer_delete (ws->sbo);
 
-    free (ws->sb);
+    free (ws->sbo);
     free (ws->identifier);
     free (ws);
   }

@@ -46,33 +46,41 @@ static int shm_buffer_create (off_t size) {
 void shm_buffer_registry_global (void *data, struct wl_registry *registry,
                                  uint32_t name, const char *interface,
                                  uint32_t version) {
-  struct wl_shm **shm = data;
+  struct shm_buffer *sb = data;
 
   if (strcmp (interface, wl_shm_interface.name) == 0)
-    *shm = wl_registry_bind (registry, name, &wl_shm_interface, 1);
+    sb->shm = wl_registry_bind (registry, name, &wl_shm_interface, 1);
 }
 
 void shm_buffer_registry_global_remove (void               *data,
                                         struct wl_registry *registry,
                                         uint32_t            name) {}
 
-void shm_buffer_init (struct shm_buffer *sb, struct wl_shm *shm,
-                      enum wl_shm_format format, int32_t width,
-                      int32_t height) {
+void shm_buffer_init (struct shm_buffer *sb) {
+  sb->sbo = calloc (1, sizeof (*sb->sbo));
+}
+
+void shm_buffer_destroy (struct shm_buffer *sb) {
+  wl_shm_destroy (sb->shm);
+  free (sb->sbo);
+}
+
+void shm_buffer_new (struct shm_buffer_object *sbo, struct wl_shm *shm,
+                     enum wl_shm_format format, int32_t width, int32_t height) {
   // maybe use cairo_format_stride_for_width?
   int32_t stride = width * 4;
   size_t  size   = height * stride;
 
   int fd = shm_buffer_create (size);
   if (fd == -1) {
-    sb = NULL;
+    sbo = NULL;
     return;
   }
 
   void *data = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (data == MAP_FAILED) {
     close (fd);
-    sb = NULL;
+    sbo = NULL;
     return;
   }
 
@@ -83,14 +91,14 @@ void shm_buffer_init (struct shm_buffer *sb, struct wl_shm *shm,
   wl_shm_pool_destroy (pool);
   close (fd);
 
-  sb->buffer = buffer;
-  sb->data   = data;
-  sb->width  = width;
-  sb->height = height;
-  sb->stride = stride;
+  sbo->buffer = buffer;
+  sbo->data   = data;
+  sbo->width  = width;
+  sbo->height = height;
+  sbo->stride = stride;
 }
 
-void shm_buffer_destroy (struct shm_buffer *sb) {
-  munmap (sb->data, sb->height * sb->stride);
-  wl_buffer_destroy (sb->buffer);
+void shm_buffer_delete (struct shm_buffer_object *sbo) {
+  munmap (sbo->data, sbo->height * sbo->stride);
+  wl_buffer_destroy (sbo->buffer);
 }

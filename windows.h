@@ -22,7 +22,6 @@ struct windows {
 
   struct wl_display  *display;
   struct wl_registry *registry;
-  struct wl_shm      *shm;
   struct wl_callback *callback;
 
   struct wl_list windows;
@@ -37,5 +36,5 @@ struct windows_state {
   bool  error;
   char *identifier;
 
-  struct shm_buffer *sb;
+  struct shm_buffer_object *sbo;
 };
