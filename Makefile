@@ -4,11 +4,13 @@ TARGET := windows
 WAYLAND_SCANNER   := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
 WAYLAND_PROTOCOLS := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
 WAYLAND_HEADER    := \
+	fractional-scale-v1-protocol.h  \
 	xdg-shell-protocol.h \
 	ext-foreign-toplevel-list-v1-protocol.h \
 	ext-image-capture-source-v1-protocol.h \
 	ext-image-copy-capture-v1-protocol.h
 WAYLAND_INTERFACE := \
+	fractional-scale-v1-protocol.c \
 	xdg-shell-protocol.c \
 	ext-foreign-toplevel-list-v1-protocol.c \
 	ext-image-capture-source-v1-protocol.c \
@@ -26,6 +28,14 @@ LDLIBS += \
 	$(shell pkg-config --libs wayland-client) \
 	$(shell pkg-config --libs xkbcommon) \
 	$(shell pkg-config --libs cairo)
+
+fractional-scale-v1-protocol.h: \
+	$(WAYLAND_PROTOCOLS)/staging/fractional-scale/fractional-scale-v1.xml
+	$(WAYLAND_SCANNER) client-header $< $@
+
+fractional-scale-v1-protocol.c: \
+	$(WAYLAND_PROTOCOLS)/staging/fractional-scale/fractional-scale-v1.xml
+	$(WAYLAND_SCANNER) private-code $< $@
 
 xdg-shell-protocol.h: \
 	$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml
