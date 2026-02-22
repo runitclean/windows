@@ -35,7 +35,7 @@ struct windows_state {
   struct wl_list link;
 
   bool  error;
-  char *identifier, *title, *app_id;
+  char *identifier;
 
   struct shm_buffer *sb;
 };

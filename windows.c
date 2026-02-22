@@ -246,8 +246,6 @@ int32_t main (int32_t argc, char **argv) {
       wl_display_roundtrip (w.display);
 
     ws->identifier = strdup (tlo->identifier);
-    ws->title      = strdup (tlo->title);
-    ws->app_id     = strdup (tlo->app_id);
 
     image_copy_session (w.ic, icf, tlo->handle);
 
@@ -352,9 +350,6 @@ int32_t main (int32_t argc, char **argv) {
 
     free (ws->sb);
     free (ws->identifier);
-    free (ws->title);
-    free (ws->app_id);
-
     free (ws);
   }
 

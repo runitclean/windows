@@ -13,7 +13,7 @@ struct toplevel_list_object {
   struct wl_list                         link;
 
   bool  closed, done;
-  char *identifier, *title, *app_id;
+  char *identifier;
 };
 
 void toplevel_list_registry_global (void *data, struct wl_registry *registry,

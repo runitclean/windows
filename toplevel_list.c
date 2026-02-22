@@ -14,19 +14,11 @@ static void foreign_toplevel_handle_done (
 
 static void foreign_toplevel_handle_title (
   void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
-  const char *title) {
-  struct toplevel_list_object *tlo = data;
-  free (tlo->title);
-  tlo->title = strdup (title);
-}
+  const char *title) {}
 
 static void foreign_toplevel_handle_app_id (
   void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
-  const char *app_id) {
-  struct toplevel_list_object *tlo = data;
-  free (tlo->app_id);
-  tlo->app_id = strdup (app_id);
-}
+  const char *app_id) {}
 
 static void foreign_toplevel_handle_identifier (
   void *data, struct ext_foreign_toplevel_handle_v1 *toplevel_handle,
@@ -67,12 +59,9 @@ foreign_toplevel_list_finished (void                                *data,
   wl_list_for_each_safe (tlo, tmp, &tl->toplevels, link) {
     wl_list_remove (&tlo->link);
 
-    free (tlo->title);
-    free (tlo->app_id);
-    free (tlo->identifier);
-
     ext_foreign_toplevel_handle_v1_destroy (tlo->handle);
 
+    free (tlo->identifier);
     free (tlo);
   }
 

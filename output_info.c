@@ -81,8 +81,8 @@ void output_info_registry_global_remove (void               *data,
     wl_list_remove (&oio->link);
 
     wl_output_destroy (oio->output);
-    free (oio->monitor);
 
+    free (oio->monitor);
     free (oio);
   }
 }
@@ -96,8 +96,8 @@ void output_info_destroy (struct output_info *oi) {
     wl_list_remove (&oio->link);
 
     wl_output_destroy (oio->output);
-    free (oio->monitor);
 
+    free (oio->monitor);
     free (oio);
   }
 }
