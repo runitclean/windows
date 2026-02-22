@@ -259,8 +259,7 @@ int32_t main (int32_t argc, char **argv) {
 
     ws->sb = calloc (1, sizeof (*ws->sb));
 
-    shm_buffer_init (ws->sb, w.shm, icf->shm_format, icf->width, icf->height,
-                     icf->width * 4);
+    shm_buffer_init (ws->sb, w.shm, icf->shm_format, icf->width, icf->height);
 
     image_copy_toplevel (icf, ws->sb->buffer);
 
@@ -302,7 +301,7 @@ int32_t main (int32_t argc, char **argv) {
   expose_algorithm_allocate (w.ea);
 
   shm_buffer_init (w.sb, w.shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
-                   w.buffer_height, w.buffer_width * 4);
+                   w.buffer_height);
   cairo_draw_init (w.cd, w.sb->data, w.sb->width, w.sb->height, w.sb->stride);
 
   struct wl_callback *callback = wl_surface_frame (w.xs->wl_surface);

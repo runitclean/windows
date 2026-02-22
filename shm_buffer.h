@@ -17,6 +17,5 @@ void shm_buffer_registry_global_remove (void               *data,
                                         uint32_t            name);
 
 void shm_buffer_init (struct shm_buffer *sb, struct wl_shm *shm,
-                      enum wl_shm_format format, int32_t width, int32_t height,
-                      int32_t stride);
+                      enum wl_shm_format format, int32_t width, int32_t height);
 void shm_buffer_destroy (struct shm_buffer *sb);

@@ -33,7 +33,7 @@ static int shm_buffer_create (off_t size) {
   int fd = shm_buffer_open ();
 
   if (fd < 0)
-    return fd;
+    return -1;
 
   if (ftruncate (fd, size) < 0) {
     close (fd);
@@ -57,9 +57,11 @@ void shm_buffer_registry_global_remove (void               *data,
                                         uint32_t            name) {}
 
 void shm_buffer_init (struct shm_buffer *sb, struct wl_shm *shm,
-                      enum wl_shm_format format, int32_t width, int32_t height,
-                      int32_t stride) {
-  size_t size = height * stride;
+                      enum wl_shm_format format, int32_t width,
+                      int32_t height) {
+  // maybe use cairo_format_stride_for_width?
+  int32_t stride = width * 4;
+  size_t  size   = height * stride;
 
   int fd = shm_buffer_create (size);
   if (fd == -1) {
