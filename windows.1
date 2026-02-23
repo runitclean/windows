@@ -1,0 +1,74 @@
+.Dd February 23, 2026
+.Dt WINDOWS 1
+.Os
+.Sh NAME
+.Nm windows
+.Nd overview and select Wayland toplevel windows
+.Sh SYNOPSIS
+.Nm
+.Op Fl h
+.Op Fl o Ar output
+.Sh DESCRIPTION
+The
+.Nm
+program is a Wayland client that presents an overview of all toplevel
+windows on a designated output monitor and allows interactive
+selection of a window.
+.Pp
+The program connects to the Wayland compositor, enumerates available
+toplevel surfaces, captures their contents in shared memory buffers,
+and arranges them using an exposé-style layout.  The selected window's
+toplevel handle identifier is written to
+.Xr stdout 3
+when confirmed.
+.Pp
+If no valid output monitor is specified, or the designated monitor
+cannot be resolved to a known output, the program
+.Xr exit 3
+with a non-zero status.
+.Bl -tag
+.It Fl h
+Print the help message and quit.
+.It Fl o Ar output
+Configure the designated output monitor.  This is case-sensitive and
+must match the output name reported by the compositor.
+.El
+.Pp
+The Wayland compositor must support at least the following protocols
+and interface versions:
+.TS
+BOX CENTER TAB(;);
+cb|cb, l|c.
+Protocol;Version
+_
+wl_output;4
+wl_seat;7
+wl_shm;1
+wl_compositor;4
+ext_foreign_toplevel_list;1
+ext_image_copy_capture_manager;1
+ext_foreign_toplevel_image_capture_source_manager;1
+wp_fractional_scale_manager;1
+wp_viewporter;1
+xdg_wm_base;3
+.TE
+.Sh INTERACTION
+.Bl -tag
+.It Ao left Ac , Ao right Ac , Ao up Ac , Aq down
+Move focus between the windows according to their layout adjacency.
+An initial keypress selects the top-left window.
+.It Aq enter
+Print the toplevel handle identifier of the focused window to
+.Va stdout
+and quit.  Do nothing when there is no focused window.
+.It Aq escape
+Quit without doing anything.
+.Sh EXIT STATUS
+.Bl -tag
+.It 0
+Successful execution.
+.It 1
+Invalid option(s) or failure to resolve the designated monitor.
+.El
+.Sh AUTHORS
+.An Jing Huang Aq Mt rne.kou@icloud.com
