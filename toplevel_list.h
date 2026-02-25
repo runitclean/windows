@@ -5,12 +5,14 @@
 
 struct toplevel_list {
   struct ext_foreign_toplevel_list_v1 *toplevel_list;
-  struct wl_list                       toplevels;
+
+  struct wl_list toplevels;
 };
 
 struct toplevel_list_object {
+  struct wl_list link;
+
   struct ext_foreign_toplevel_handle_v1 *handle;
-  struct wl_list                         link;
 
   bool  closed, done;
   char *identifier;
