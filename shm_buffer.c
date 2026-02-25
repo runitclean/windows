@@ -57,6 +57,7 @@ void shm_buffer_registry_global_remove (void               *data,
                                         uint32_t            name) {}
 
 void shm_buffer_init (struct shm_buffer *sb) {
+  // only allocate one global shm_buffer_object for rendering
   sb->sbo = calloc (1, sizeof (*sb->sbo));
 }
 
@@ -92,10 +93,10 @@ void shm_buffer_new (struct shm_buffer_object *sbo, struct wl_shm *shm,
   close (fd);
 
   sbo->buffer = buffer;
-  sbo->data   = data;
   sbo->width  = width;
   sbo->height = height;
   sbo->stride = stride;
+  sbo->data   = data;
 }
 
 void shm_buffer_delete (struct shm_buffer_object *sbo) {

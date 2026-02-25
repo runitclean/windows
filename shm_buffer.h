@@ -10,9 +10,10 @@ struct shm_buffer {
 
 struct shm_buffer_object {
   struct wl_buffer *buffer;
-  void             *data;
 
   int32_t width, height, stride;
+
+  void *data;
 };
 
 void shm_buffer_registry_global (void *data, struct wl_registry *registry,
@@ -25,6 +26,7 @@ void shm_buffer_registry_global_remove (void               *data,
 void shm_buffer_init (struct shm_buffer *sb);
 void shm_buffer_destroy (struct shm_buffer *sb);
 
+// allow non-global creation and disposition of shm_buffer_object
 void shm_buffer_new (struct shm_buffer_object *sbo, struct wl_shm *shm,
                      enum wl_shm_format format, int32_t width, int32_t height);
 void shm_buffer_delete (struct shm_buffer_object *sbo);
