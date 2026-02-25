@@ -209,6 +209,7 @@ int32_t main (int32_t argc, char **argv) {
 
   struct output_info_object *oio;
 
+  // we didn't zero-initialize windows
   w.buffer_width = w.buffer_height = 0;
 
   wl_list_for_each (oio, &w.oi->outputs, link) {
@@ -245,6 +246,7 @@ int32_t main (int32_t argc, char **argv) {
 
     while (!tlo->closed && !tlo->done)
       ;
+
     ws->identifier = strdup (tlo->identifier);
 
     image_copy_session (w.ic, icf, tlo->handle);
@@ -272,6 +274,7 @@ int32_t main (int32_t argc, char **argv) {
     wl_list_insert (&w.windows, &ws->link);
   }
 
+  // we don't want to listen for further updates
   toplevel_list_destroy (w.tl);
 
   xdg_shell_init (w.xs, "Window Overview", "windows");
@@ -295,7 +298,7 @@ int32_t main (int32_t argc, char **argv) {
     eaw->data   = ws;
   }
 
-  expose_algorithm_allocate (w.ea);
+  expose_algorithm_prepare (w.ea);
 
   shm_buffer_init (w.sb);
   shm_buffer_new (w.sb->sbo, w.sb->shm, WL_SHM_FORMAT_ARGB8888, w.buffer_width,
