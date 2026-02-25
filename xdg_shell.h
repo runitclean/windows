@@ -2,7 +2,7 @@
 
 #include "fractional-scale-v1-protocol.h"
 #include "global.h"
-#include "viewporter.h"
+#include "viewporter-protocol.h"
 #include "xdg-shell-protocol.h"
 
 struct xdg_shell {
@@ -19,8 +19,8 @@ struct xdg_shell {
   struct xdg_surface  *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
 
-  float scale;
   bool  configure, close;
+  float scale;
 };
 
 void xdg_shell_registry_global (void *data, struct wl_registry *registry,
