@@ -58,29 +58,6 @@ static const struct wl_pointer_listener pointer_listener = {
   .axis_relative_direction = pointer_listener_axis_relative_direction,
 };
 
-static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
-                                      uint32_t format, int32_t fd,
-                                      uint32_t size) {
-  struct input_device_seat *ids = data;
-
-  if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)
-    return;
-
-  xkb_state_unref (ids->state);
-  xkb_keymap_unref (ids->keymap);
-
-  // from wl_seat version 7 onwards, the fd must be mapped with MAP_PRIVATE by
-  // the recipient, as MAP_SHARED may fail
-  char *shm = mmap (NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
-
-  ids->keymap = xkb_keymap_new_from_string (
-    ids->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
-  ids->state = xkb_state_new (ids->keymap);
-
-  munmap (shm, size);
-  close (fd);
-}
-
 static void input_device_keyboard_dispatch (struct input_device_seat *ids,
                                             xkb_keycode_t             keycode) {
   struct input_device *id = ids->id;
@@ -113,6 +90,29 @@ static void input_device_keyboard_dispatch (struct input_device_seat *ids,
       id->enter (id->data);
     break;
   }
+}
+
+static void keyboard_listener_keymap (void *data, struct wl_keyboard *keyboard,
+                                      uint32_t format, int32_t fd,
+                                      uint32_t size) {
+  struct input_device_seat *ids = data;
+
+  if (format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1)
+    return;
+
+  xkb_state_unref (ids->state);
+  xkb_keymap_unref (ids->keymap);
+
+  // from wl_seat version 7 onwards, the fd must be mapped with MAP_PRIVATE by
+  // the recipient, as MAP_SHARED may fail
+  char *shm = mmap (NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+  ids->keymap = xkb_keymap_new_from_string (
+    ids->context, shm, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+  ids->state = xkb_state_new (ids->keymap);
+
+  munmap (shm, size);
+  close (fd);
 }
 
 static void keyboard_listener_enter (void *data, struct wl_keyboard *keyboard,

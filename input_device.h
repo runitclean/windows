@@ -6,8 +6,9 @@ struct input_device {
   struct wl_list seats;
 
   struct wl_keyboard *keyboard;
-  int32_t             repeat_timer;
-  xkb_keycode_t       repeat_key;
+
+  int32_t       repeat_timer;
+  xkb_keycode_t repeat_key;
 
   void *data;
 
