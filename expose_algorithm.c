@@ -238,9 +238,8 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
 
 void expose_algorithm_init (struct expose_algorithm *ea, int32_t width,
                             int32_t height, int32_t window_count) {
-  ea->width  = width;
-  ea->height = height;
-
+  ea->width        = width;
+  ea->height       = height;
   ea->window_count = window_count;
 
   ea->eaw = calloc (window_count, sizeof (*ea->eaw));
@@ -248,7 +247,7 @@ void expose_algorithm_init (struct expose_algorithm *ea, int32_t width,
 
 void expose_algorithm_destroy (struct expose_algorithm *ea) { free (ea->eaw); }
 
-void expose_algorithm_allocate (struct expose_algorithm *ea) {
+void expose_algorithm_prepare (struct expose_algorithm *ea) {
   for (uint32_t i = 0; i < ea->window_count; i++) {
     struct expose_algorithm_window *eaw = &ea->eaw[i];
 
