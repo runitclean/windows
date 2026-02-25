@@ -26,15 +26,15 @@ struct windows {
 
   struct wl_list windows;
 
-  int32_t buffer_width, buffer_height;
   bool    render;
+  int32_t buffer_width, buffer_height;
 };
 
 struct windows_state {
   struct wl_list link;
 
+  struct shm_buffer_object *sbo;
+
   bool  error;
   char *identifier;
-
-  struct shm_buffer_object *sbo;
 };
