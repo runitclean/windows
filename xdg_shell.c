@@ -71,8 +71,6 @@ void xdg_shell_registry_global_remove (void *data, struct wl_registry *registry,
 
 void xdg_shell_init (struct xdg_shell *xs, const char *title,
                      const char *app_id) {
-  xdg_wm_base_add_listener (xs->xdg_wm_base, &xdg_wm_base_listener, xs);
-
   xs->wl_surface = wl_compositor_create_surface (xs->wl_compositor);
 
   xs->fractional_scale = wp_fractional_scale_manager_v1_get_fractional_scale (
@@ -81,6 +79,8 @@ void xdg_shell_init (struct xdg_shell *xs, const char *title,
                                        &fractional_scale_listener, xs);
 
   xs->viewport = wp_viewporter_get_viewport (xs->viewporter, xs->wl_surface);
+
+  xdg_wm_base_add_listener (xs->xdg_wm_base, &xdg_wm_base_listener, xs);
 
   xs->xdg_surface =
     xdg_wm_base_get_xdg_surface (xs->xdg_wm_base, xs->wl_surface);
