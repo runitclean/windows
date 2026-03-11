@@ -189,7 +189,8 @@ static void expose_algorithm_pack (struct expose_algorithm_shelf eas,
       }
 
       if (lower_strip)
-        expose_algorithm_link (ea->eaw, upper_start, upper_end, strip_index, i);
+        expose_algorithm_link (ea->eaw, upper_start, upper_end, strip_index,
+                               i - 1);
 
       upper_start = strip_index;
       upper_end   = i - 1;
