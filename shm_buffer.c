@@ -73,15 +73,12 @@ void shm_buffer_new (struct shm_buffer_object *sbo, struct wl_shm *shm,
   size_t  size   = height * stride;
 
   int fd = shm_buffer_create (size);
-  if (fd == -1) {
-    sbo = NULL;
+  if (fd == -1)
     return;
-  }
 
   void *data = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   if (data == MAP_FAILED) {
     close (fd);
-    sbo = NULL;
     return;
   }
 
