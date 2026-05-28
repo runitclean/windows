@@ -64,6 +64,8 @@ static const struct wl_callback_listener callback_listener = {
   .done = callback_done,
 };
 
+static void crash (int signal) { _exit (1); }
+
 static void usage (FILE *out, const char *name) {
   fprintf (out,
            "Usage: %s [options...]\n"
@@ -165,6 +167,9 @@ static void enter (void *data) {
 }
 
 int32_t main (int32_t argc, char **argv) {
+  // remove this when debugging
+  sigaction (SIGSEGV, &(struct sigaction){.sa_handler = crash}, NULL);
+
   int32_t opt;
   char   *monitor;
 
