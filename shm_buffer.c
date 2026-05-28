@@ -2,7 +2,7 @@
 
 static void shm_buffer_name (char *buffer) {
   struct timespec time;
-  clock_gettime (CLOCK_REALTIME, &time);
+  clock_gettime (CLOCK_MONOTONIC, &time);
 
   long seed = time.tv_nsec;
 
